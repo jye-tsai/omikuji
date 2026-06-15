@@ -165,6 +165,19 @@
   #pwModal .row button{flex:1;padding:12px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;border:1px solid var(--border);}
   #pwModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
   #pwModal .row .cancel{background:var(--card);color:var(--muted);}
+  /* GitHub 同步視窗 */
+  #ghModal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:20px;z-index:120;overflow:auto;}
+  #ghModal .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:380px;width:100%;box-shadow:var(--shadow);}
+  #ghModal h2{font-size:18px;margin:0 0 4px;color:var(--title);}
+  #ghModal p{font-size:12px;color:var(--muted);margin:0 0 6px;line-height:1.55;}
+  #ghModal label{display:block;font-size:13px;color:var(--muted);margin:11px 0 4px;font-weight:700;}
+  #ghModal input[type=text],#ghModal input[type=password]{width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;font-size:15px;background:var(--card);color:var(--text);}
+  #ghModal .chk{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;color:var(--text);font-weight:700;}
+  #ghModal .chk input{width:18px;height:18px;}
+  #ghModal .status{font-size:13px;min-height:18px;margin:12px 0;text-align:center;color:var(--muted);}
+  #ghModal .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  #ghModal .row button{flex:1;min-width:88px;padding:10px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);}
+  #ghModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
   .hidden{display:none!important;}
 </style>
 </head>
@@ -198,6 +211,31 @@
   </div>
 </div>
 
+<!-- GitHub 同步 -->
+<div id="ghModal" class="hidden">
+  <div class="box">
+    <h2>🔗 GitHub 同步</h2>
+    <p>把加密後的存檔同步到你的 GitHub repo（與 index.html 同目錄的 <code>data.json</code>）。上傳的是亂碼，需通關密語才能讀。</p>
+    <label>帳號 (owner)</label>
+    <input type="text" id="ghOwner" placeholder="jye-tsai" autocomplete="off">
+    <label>Repo 名稱</label>
+    <input type="text" id="ghRepo" placeholder="adventure-log" autocomplete="off">
+    <label>檔名 / 路徑</label>
+    <input type="text" id="ghPath" placeholder="data.json" autocomplete="off">
+    <label>Personal Access Token</label>
+    <input type="password" id="ghToken" placeholder="github_pat_… 或 ghp_…" autocomplete="off">
+    <p>Token 只存在這台瀏覽器，不會傳到別處。建議用 Fine-grained token，只給這個 repo 的 Contents 讀寫權限。</p>
+    <label class="chk"><input type="checkbox" id="ghAuto"> 每次變更自動上傳</label>
+    <div class="status" id="ghStatus"></div>
+    <div class="row">
+      <button class="ok" id="ghSave">儲存設定</button>
+      <button id="ghUp">⬆ 上傳</button>
+      <button id="ghDown">⬇ 下載</button>
+    </div>
+    <div class="row"><button id="ghClose">關閉</button></div>
+  </div>
+</div>
+
 <div class="container hidden" id="app">
   <header>
     <h1><span class="brand-icon">⚔</span> 冒險日誌</h1>
@@ -212,6 +250,7 @@
         <option value="agent">🧬 Agent Neon</option>
       </select>
       <button class="btn" id="changePw">🔑 變更密語</button>
+      <button class="btn" id="ghBtn">🔗 GitHub</button>
       <button class="btn" id="relock">🔒 鎖定</button>
     </div>
   </header>
@@ -314,7 +353,7 @@ async function unlock(pw){
   catch(e){ data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } }; }
   return true;
 }
-async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); }
+async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); autoSync(); }
 function normalize(d){
   d.settings = d.settings || {};
   if(!d.settings.periodLength) d.settings.periodLength = 5;
@@ -402,6 +441,93 @@ document.getElementById("pwOk").addEventListener("click", async ()=>{
   finally{ okBtn.disabled = false; okBtn.textContent = "確定變更"; }
 });
 npw2.addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("pwOk").click(); });
+
+/* ---------- GitHub 同步 ---------- */
+const GH = { owner:"al_gh_owner", repo:"al_gh_repo", path:"al_gh_path", token:"al_gh_token", auto:"al_gh_auto" };
+const ghModal = document.getElementById("ghModal");
+const ghOwner = document.getElementById("ghOwner");
+const ghRepo = document.getElementById("ghRepo");
+const ghPath = document.getElementById("ghPath");
+const ghToken = document.getElementById("ghToken");
+const ghAuto = document.getElementById("ghAuto");
+const ghStatus = document.getElementById("ghStatus");
+
+function ghCfg(){
+  return {
+    owner: (localStorage.getItem(GH.owner)||"").trim(),
+    repo:  (localStorage.getItem(GH.repo)||"").trim(),
+    path:  (localStorage.getItem(GH.path)||"data.json").trim(),
+    token: (localStorage.getItem(GH.token)||"").trim(),
+    auto:  localStorage.getItem(GH.auto)==="1"
+  };
+}
+function ghSetStatus(msg, err){ ghStatus.textContent = msg; ghStatus.style.color = err ? "#e0394e" : "var(--muted)"; }
+function openGhModal(){
+  const c = ghCfg();
+  ghOwner.value=c.owner; ghRepo.value=c.repo; ghPath.value=c.path; ghToken.value=c.token; ghAuto.checked=c.auto;
+  ghSetStatus(""); ghModal.classList.remove("hidden");
+}
+function closeGhModal(){ ghModal.classList.add("hidden"); }
+function ghSaveCfg(){
+  localStorage.setItem(GH.owner, ghOwner.value.trim());
+  localStorage.setItem(GH.repo, ghRepo.value.trim());
+  localStorage.setItem(GH.path, (ghPath.value.trim()||"data.json"));
+  localStorage.setItem(GH.token, ghToken.value.trim());
+  localStorage.setItem(GH.auto, ghAuto.checked ? "1" : "0");
+}
+function ghUrl(c){ return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${encodeURIComponent(c.path).replace(/%2F/g,"/")}`; }
+function ghHeaders(c){ return { "Authorization":"Bearer "+c.token, "Accept":"application/vnd.github+json" }; }
+function currentBundleStr(){
+  const bundle = { v:1, salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
+  return JSON.stringify(bundle, null, 2);
+}
+async function ghGetFile(c){
+  const r = await fetch(ghUrl(c), { headers: ghHeaders(c) });
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error("讀取失敗（" + r.status + "）");
+  return r.json();
+}
+async function ghUpload(silent){
+  const c = ghCfg();
+  if(!c.owner || !c.repo || !c.token){ if(!silent) ghSetStatus("請先填帳號、Repo 與 Token", true); return; }
+  if(!silent) ghSetStatus("上傳中…");
+  try{
+    const existing = await ghGetFile(c);
+    const body = { message:"update "+new Date().toISOString(), content: btoa(currentBundleStr()) };
+    if(existing && existing.sha) body.sha = existing.sha;
+    const r = await fetch(ghUrl(c), { method:"PUT", headers:{...ghHeaders(c),"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if(!r.ok) throw new Error("上傳失敗（" + r.status + "）");
+    if(!silent) ghSetStatus("✅ 已上傳到 GitHub");
+  }catch(e){ if(!silent) ghSetStatus(e.message, true); }
+}
+async function ghDownload(){
+  const c = ghCfg();
+  if(!c.owner || !c.repo || !c.token){ ghSetStatus("請先填帳號、Repo 與 Token", true); return; }
+  ghSetStatus("下載中…");
+  try{
+    const f = await ghGetFile(c);
+    if(!f){ ghSetStatus("repo 上找不到該檔案", true); return; }
+    const txt = atob((f.content||"").replace(/\s/g,""));
+    const bundle = JSON.parse(txt);
+    if(!bundle.salt || !bundle.check || !bundle.data) throw new Error("檔案格式不符");
+    localStorage.setItem(LS.salt, bundle.salt);
+    localStorage.setItem(LS.check, bundle.check);
+    localStorage.setItem(LS.data, bundle.data);
+    ghSetStatus("✅ 已下載，請用密語解鎖");
+    closeGhModal(); relock();
+  }catch(e){ ghSetStatus(e.message, true); }
+}
+let autoTimer = null;
+function autoSync(){
+  if(localStorage.getItem(GH.auto)!=="1") return;
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(()=>{ ghUpload(true); }, 1500);
+}
+document.getElementById("ghBtn").addEventListener("click", openGhModal);
+document.getElementById("ghClose").addEventListener("click", closeGhModal);
+document.getElementById("ghSave").addEventListener("click", ()=>{ ghSaveCfg(); ghSetStatus("✅ 設定已儲存"); });
+document.getElementById("ghUp").addEventListener("click", ()=>{ ghSaveCfg(); ghUpload(false); });
+document.getElementById("ghDown").addEventListener("click", ()=>{ ghSaveCfg(); ghDownload(); });
 
 /* ---------- 日期工具 ---------- */
 function fmt(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
