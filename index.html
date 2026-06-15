@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="ocean">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>冒險日誌</title>
+<style>
+  /* ===== 主題（與小財庫同一套）===== */
+  :root,
+  [data-theme="ocean"] {
+    --bg:#eef4fb; --card:#fff; --border:#d4e2f0;
+    --text:#15324a; --muted:#6b8299;
+    --title:#0c2840; --title-accent:#0ea5e9; --title-glow:0 0 16px rgba(14,165,233,.5),0 0 32px rgba(14,165,233,.22);
+    --accent:#0284c7; --shadow:0 2px 14px rgba(13,40,64,.09);
+  }
+  [data-theme="coral"] {
+    --bg:#fff4ee; --card:#fffaf6; --border:#f5d9c8;
+    --text:#4a2f26; --muted:#a07a68;
+    --title:#7c3a1d; --title-accent:#f97316; --title-glow:0 0 16px rgba(249,115,22,.5),0 0 32px rgba(251,113,133,.22);
+    --accent:#f97316; --shadow:0 2px 14px rgba(180,90,50,.12);
+  }
+  [data-theme="matcha"] {
+    --bg:#eef4ec; --card:#fbfdf9; --border:#d3e2cc;
+    --text:#25352a; --muted:#6f8772;
+    --title:#1f3a2a; --title-accent:#16a34a; --title-glow:0 0 16px rgba(22,163,74,.48),0 0 32px rgba(22,163,74,.2);
+    --accent:#4d7c45; --shadow:0 2px 14px rgba(40,70,45,.09);
+  }
+  [data-theme="midnight"] {
+    --bg:#0d1424; --card:#15203a; --border:#2a3a57;
+    --text:#e8edf7; --muted:#93a3c0;
+    --title:#f5f0e1; --title-accent:#e0b34d; --title-glow:0 0 18px rgba(224,179,77,.72),0 0 40px rgba(224,179,77,.32);
+    --accent:#d4a843; --shadow:0 8px 30px rgba(0,0,0,.42);
+  }
+  [data-theme="sailor"] {
+    --bg:#f4f2fc; --card:#fff; --border:#e0dcf2;
+    --text:#25224d; --muted:#837fa8;
+    --title:#1e3a8a; --title-accent:#eab308; --title-glow:0 0 16px rgba(234,179,8,.6),0 0 30px rgba(43,63,158,.3);
+    --accent:#2b3f9e; --shadow:0 4px 16px rgba(70,60,140,.16);
+  }
+  [data-theme="cute"] {
+    --bg:#fef6fb; --card:#fffafd; --border:#f6dbe8;
+    --text:#5b4a55; --muted:#b291a3;
+    --title:#6b4a5e; --title-accent:#ff8fb8; --title-glow:0 0 16px rgba(255,143,184,.6),0 0 30px rgba(255,143,184,.28);
+    --accent:#ff8fb4; --shadow:0 4px 16px rgba(244,143,177,.18);
+  }
+  [data-theme="agent"] {
+    --bg:#05060f; --card:rgba(16,19,33,.78); --border:rgba(139,92,246,.34);
+    --text:#e6ecff; --muted:#98a7d8;
+    --title:#f8f5ff; --title-accent:#4fdcff; --title-glow:0 0 18px rgba(139,92,246,.85),0 0 40px rgba(53,213,255,.32);
+    --accent:#9d6dff; --shadow:0 0 0 1px rgba(139,92,246,.12),0 20px 52px rgba(0,0,0,.5);
+  }
+
+  /* 狀態色 */
+  :root{
+    --rest:#d6608f; --rest-bg:#fbe4ee;
+    --busy:#d98a3a; --busy-bg:#fbecd9;
+    --key:#8b5cf6; --key-bg:#ece4fb;
+    --free:#2bb39a; --free-bg:#d9f3ec;
+  }
+  [data-theme="midnight"], [data-theme="agent"]{
+    --rest:#ff9ec4; --rest-bg:rgba(255,107,129,.15);
+    --busy:#facc15; --busy-bg:rgba(224,179,77,.14);
+    --key:#c084fc; --key-bg:rgba(192,132,252,.14);
+    --free:#34d399; --free-bg:rgba(52,211,153,.14);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;
+    padding:18px;min-height:100vh;-webkit-text-size-adjust:100%;}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:0;}
+  [data-theme="agent"] body::before{opacity:1;background:
+    radial-gradient(circle at 12% 6%,rgba(139,92,246,.30),transparent 30%),
+    radial-gradient(circle at 86% 12%,rgba(34,211,238,.18),transparent 32%),
+    radial-gradient(circle at 50% 118%,rgba(155,108,255,.22),transparent 55%),
+    linear-gradient(rgba(120,140,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,140,255,.05) 1px,transparent 1px),
+    radial-gradient(circle at 50% 38%,#0b0d1d 0%,#06070f 68%,#020308 100%);
+    background-size:auto,auto,auto,40px 40px,40px 40px,auto;}
+  [data-theme="cute"] body::before{opacity:1;background:
+    radial-gradient(circle at 15% 8%,rgba(255,158,196,.20),transparent 42%),
+    radial-gradient(circle at 85% 14%,rgba(143,224,200,.18),transparent 44%),
+    radial-gradient(circle at 50% 112%,rgba(185,167,255,.16),transparent 55%);}
+
+  .container{max-width:600px;margin:0 auto;}
+  header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+  h1{font-size:25px;color:var(--title);display:flex;align-items:center;gap:8px;line-height:1.25;text-shadow:var(--title-glow);font-weight:850;letter-spacing:.02em;}
+  .brand-icon{color:var(--title-accent);filter:drop-shadow(0 0 10px var(--title-accent));font-size:27px;}
+  [data-theme="agent"] h1{font-family:Consolas,"Cascadia Mono",monospace;letter-spacing:.08em;}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;
+    border-radius:9px;cursor:pointer;font-size:15px;font-weight:600;box-shadow:var(--shadow);}
+  .btn:hover{border-color:var(--accent);}
+  select.btn{padding:8px 9px;}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn.danger{color:var(--rest);}
+  [data-theme="agent"] .btn{background:rgba(16,18,27,.88);border-color:rgba(139,92,246,.25);backdrop-filter:blur(10px);}
+  [data-theme="agent"] .btn:hover{border-color:rgba(34,211,238,.62);box-shadow:0 0 18px rgba(34,211,238,.14);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;
+    margin-bottom:16px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s,border-color .18s;}
+  [data-theme="agent"] .panel{border-radius:16px;background:linear-gradient(180deg,rgba(139,92,246,.07),transparent 46%),var(--card);backdrop-filter:blur(16px);}
+  [data-theme="cute"] .panel{border-radius:22px;}
+  .sec-title{font-size:16px;font-weight:800;margin:0 0 12px;color:var(--muted);letter-spacing:.04em;}
+  [data-theme="agent"] .sec-title{color:#c8b8ff;text-transform:uppercase;letter-spacing:.08em;text-shadow:0 0 16px rgba(155,108,255,.38);}
+
+  /* 今日狀態橫幅 */
+  .banner{border-radius:16px;padding:22px 18px;margin-bottom:16px;text-align:center;
+    border:1px solid var(--border);box-shadow:var(--shadow);background:var(--card);}
+  .banner .phase{font-size:30px;font-weight:880;line-height:1.1;letter-spacing:.02em;}
+  .banner .chap{font-size:15px;color:var(--muted);margin-top:8px;font-weight:700;}
+  .banner.rest{background:var(--rest-bg);} .banner.rest .phase{color:var(--rest);}
+  .banner.busy{background:var(--busy-bg);} .banner.busy .phase{color:var(--busy);}
+  .banner.key{background:var(--key-bg);} .banner.key .phase{color:var(--key);}
+  .banner.free{background:var(--free-bg);} .banner.free .phase{color:var(--free);}
+
+  /* 數據卡 */
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;min-height:84px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;
+    transition:transform .18s,box-shadow .18s,border-color .18s;}
+  .card:hover{transform:translateY(-3px);border-color:var(--accent);}
+  [data-theme="cute"] .card{border-radius:20px;}
+  .card .label{color:var(--muted);font-size:14px;margin-bottom:8px;font-weight:750;}
+  .card .value{font-size:23px;font-weight:850;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--title);}
+  .card .value.sm{font-size:19px;}
+  .card.wide{grid-column:1/-1;}
+
+  /* 記錄區 */
+  .record-row{display:flex;gap:8px;margin-bottom:12px;}
+  .record-row input{flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;font-size:16px;background:var(--card);color:var(--text);}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--rest-bg);color:var(--rest);
+    border-radius:20px;padding:6px 8px 6px 13px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .chip button{border:none;background:rgba(0,0,0,.08);color:inherit;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:13px;line-height:1;}
+  .chips .empty{color:var(--muted);font-size:14px;}
+
+  .stat-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:16px;}
+  .stat-row:last-child{border-bottom:none;}
+  .settings label{display:flex;justify-content:space-between;align-items:center;padding:11px 0;font-size:16px;border-bottom:1px solid var(--border);}
+  .settings input{width:86px;padding:8px;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:16px;background:var(--card);color:var(--text);}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .actions .btn{flex:1;min-width:90px;padding:11px;text-align:center;}
+  .hint{font-size:14px;color:var(--muted);text-align:center;margin-top:10px;}
+  .foot{font-size:13px;color:var(--muted);opacity:.8;text-align:center;line-height:1.6;margin-top:6px;}
+
+  /* 鎖定畫面 */
+  #lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99;}
+  #lock .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 22px;max-width:340px;width:100%;box-shadow:var(--shadow);text-align:center;}
+  #lock .emo{font-size:42px;color:var(--title-accent);filter:drop-shadow(0 0 12px var(--title-accent));}
+  #lock h2{font-size:22px;margin:10px 0 4px;color:var(--title);text-shadow:var(--title-glow);}
+  #lock p{font-size:14px;color:var(--muted);margin:0 0 16px;line-height:1.6;}
+  #lock input{width:100%;padding:13px;border:1px solid var(--border);border-radius:10px;font-size:17px;text-align:center;margin-bottom:10px;background:var(--card);color:var(--text);}
+  #lock input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);}
+  #lock button{width:100%;padding:13px;border:none;border-radius:10px;font-size:17px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700;box-shadow:var(--shadow);}
+  #lock .err{color:#e0394e;font-size:14px;min-height:16px;margin-bottom:6px;}
+  /* 變更密語視窗 */
+  #pwModal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:20px;z-index:120;}
+  #pwModal .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px 22px;max-width:340px;width:100%;box-shadow:var(--shadow);text-align:center;}
+  #pwModal h2{font-size:19px;margin:0 0 4px;color:var(--title);}
+  #pwModal p{font-size:13px;color:var(--muted);margin:0 0 14px;}
+  #pwModal input{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px;background:var(--card);color:var(--text);}
+  #pwModal input:focus{outline:none;border-color:var(--accent);}
+  #pwModal .err{color:#e0394e;font-size:13px;min-height:15px;margin-bottom:6px;}
+  #pwModal .row{display:flex;gap:8px;}
+  #pwModal .row button{flex:1;padding:12px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;border:1px solid var(--border);}
+  #pwModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
+  #pwModal .row .cancel{background:var(--card);color:var(--muted);}
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- 鎖定 / 設定密碼畫面 -->
+<div id="lock">
+  <div class="box">
+    <div class="emo">⚔</div>
+    <h2>冒險日誌</h2>
+    <p id="lockDesc">請輸入通關密語</p>
+    <div class="err" id="lockErr"></div>
+    <input type="password" id="pw1" placeholder="通關密語" autocomplete="off">
+    <input type="password" id="pw2" placeholder="再輸入一次" autocomplete="off" class="hidden">
+    <button id="lockBtn">進入</button>
+  </div>
+</div>
+
+<!-- 變更通關密語 -->
+<div id="pwModal" class="hidden">
+  <div class="box">
+    <h2>🔑 變更通關密語</h2>
+    <p>用新密語重新加密你的資料</p>
+    <div class="err" id="pwErr"></div>
+    <input type="password" id="npw1" placeholder="新通關密語（至少 6 個字）" autocomplete="off">
+    <input type="password" id="npw2" placeholder="再輸入一次新密語" autocomplete="off">
+    <div class="row">
+      <button class="cancel" id="pwCancel">取消</button>
+      <button class="ok" id="pwOk">確定變更</button>
+    </div>
+  </div>
+</div>
+
+<div class="container hidden" id="app">
+  <header>
+    <h1><span class="brand-icon">⚔</span> 冒險日誌</h1>
+    <div class="toolbar">
+      <select class="btn" id="theme-sel" title="切換風格">
+        <option value="ocean">🌊 海洋藍</option>
+        <option value="coral">🌅 珊瑚暖陽</option>
+        <option value="matcha">🌿 抹茶清新</option>
+        <option value="midnight">🌌 午夜金</option>
+        <option value="cute">🍡 馬卡龍</option>
+        <option value="sailor">🌙 美少女</option>
+        <option value="agent">🧬 Agent Neon</option>
+      </select>
+      <button class="btn" id="changePw">🔑 變更密語</button>
+      <button class="btn" id="relock">🔒 鎖定</button>
+    </div>
+  </header>
+
+  <!-- 今日狀態 -->
+  <div class="banner" id="banner">
+    <div class="phase" id="phase">—</div>
+    <div class="chap" id="chap"></div>
+  </div>
+
+  <!-- 數據卡 -->
+  <div class="cards" id="cards"></div>
+
+  <!-- 記錄存檔點 -->
+  <div class="panel" style="margin-top:16px">
+    <div class="sec-title">記錄存檔點</div>
+    <div class="record-row">
+      <input type="date" id="dateInput">
+      <button class="btn primary" id="addBtn">＋ 新增</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="hint">每個新章節開始時新增一筆；點 ✕ 可刪除</div>
+  </div>
+
+  <!-- 設定 -->
+  <div class="panel settings">
+    <div class="sec-title">設定</div>
+    <label>回復期長度<input type="number" id="periodLen" min="1" max="14"></label>
+    <label>預設章節長度（資料不足時使用）<input type="number" id="defCycle" min="20" max="40"></label>
+    <div class="hint">存檔滿 2 次以上後，章節長度會自動用實際平均值計算</div>
+  </div>
+
+  <!-- 存檔資料 -->
+  <div class="panel">
+    <div class="sec-title">存檔資料</div>
+    <div class="actions">
+      <button class="btn" id="export">備份存檔</button>
+      <button class="btn" id="import">讀取存檔</button>
+      <button class="btn danger" id="clear">刪除全部</button>
+    </div>
+    <input type="file" id="fileInput" accept=".json" class="hidden">
+    <div class="hint">備份檔同樣經過加密，需用相同通關密語才能讀取</div>
+  </div>
+
+  <div class="foot">
+    ※ 以上為依章節長度推算的冒險預測，實際進度會因狀態、休息、心情而變動，僅供參考，不建議作為任何重要決定的唯一依據。
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- 主題 ---------- */
+const THEME_KEY = "al_theme";
+const themeSel = document.getElementById("theme-sel");
+function applyTheme(t){ document.documentElement.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
+(function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY) || "ocean";
+  document.documentElement.dataset.theme = saved; themeSel.value = saved;
+})();
+themeSel.addEventListener("change", ()=>applyTheme(themeSel.value));
+
+/* ---------- 加密核心（AES-GCM + PBKDF2）---------- */
+const LS = { salt:"al_salt", check:"al_check", data:"al_data" };
+let cryptoKey = null;
+let data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } };
+
+function b64(bytes){ let s=""; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s); }
+function unb64(str){ const bin=atob(str); const a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i); return a; }
+async function deriveKey(pw, salt){
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name:"PBKDF2", salt, iterations:250000, hash:"SHA-256" },
+    base, { name:"AES-GCM", length:256 }, false, ["encrypt","decrypt"]);
+}
+async function encStr(plain){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, cryptoKey, new TextEncoder().encode(plain));
+  const out = new Uint8Array(12 + ct.byteLength); out.set(iv,0); out.set(new Uint8Array(ct),12);
+  return b64(out);
+}
+async function decStr(blob){
+  const raw = unb64(blob); const iv = raw.slice(0,12), ct = raw.slice(12);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv}, cryptoKey, ct);
+  return new TextDecoder().decode(pt);
+}
+async function setupPassword(pw){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  localStorage.setItem(LS.salt, b64(salt));
+  cryptoKey = await deriveKey(pw, salt);
+  localStorage.setItem(LS.check, await encStr("VALID"));
+  data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } };
+  localStorage.setItem(LS.data, await encStr(JSON.stringify(data)));
+}
+async function unlock(pw){
+  const salt = unb64(localStorage.getItem(LS.salt));
+  cryptoKey = await deriveKey(pw, salt);
+  try{ if(await decStr(localStorage.getItem(LS.check)) !== "VALID") throw 0; }
+  catch(e){ cryptoKey = null; return false; }
+  try{ data = normalize(JSON.parse(await decStr(localStorage.getItem(LS.data)))); }
+  catch(e){ data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } }; }
+  return true;
+}
+async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); }
+function normalize(d){
+  d.settings = d.settings || {};
+  if(!d.settings.periodLength) d.settings.periodLength = 5;
+  if(!d.settings.defaultCycle) d.settings.defaultCycle = 28;
+  d.periods = [...new Set(d.periods)].sort();
+  return d;
+}
+
+/* ---------- 鎖定畫面流程 ---------- */
+const lock = document.getElementById("lock");
+const app = document.getElementById("app");
+const pw1 = document.getElementById("pw1");
+const pw2 = document.getElementById("pw2");
+const lockErr = document.getElementById("lockErr");
+const lockBtn = document.getElementById("lockBtn");
+const lockDesc = document.getElementById("lockDesc");
+let isSetup = !localStorage.getItem(LS.salt);
+
+function refreshLockUI(){
+  if(isSetup){
+    lockDesc.innerHTML = "首次使用，請設定通關密語（至少 6 個字，建議用一句好記的長句）<br><span style='color:#e0394e'>忘記將無法復原資料，請牢記</span>";
+    pw2.classList.remove("hidden"); lockBtn.textContent = "建立";
+  } else { lockDesc.textContent = "請輸入通關密語"; pw2.classList.add("hidden"); lockBtn.textContent = "進入"; }
+}
+refreshLockUI();
+async function handleLock(){
+  lockErr.textContent = "";
+  const p1 = pw1.value;
+  if(!p1){ lockErr.textContent = "請輸入通關密語"; return; }
+  lockBtn.disabled = true; lockBtn.textContent = "處理中…";
+  try{
+    if(isSetup){
+      if(p1.length < 6){ lockErr.textContent = "密語至少 6 個字（越長越安全，建議用好記的句子）"; return; }
+      if(p1 !== pw2.value){ lockErr.textContent = "兩次輸入不一致"; return; }
+      await setupPassword(p1); enterApp();
+    } else {
+      const ok = await unlock(p1);
+      if(!ok){ lockErr.textContent = "密語錯誤"; return; }
+      enterApp();
+    }
+  } finally { lockBtn.disabled = false; refreshLockUI(); }
+}
+lockBtn.addEventListener("click", handleLock);
+pw1.addEventListener("keydown", e=>{ if(e.key==="Enter"){ isSetup ? pw2.focus() : handleLock(); }});
+pw2.addEventListener("keydown", e=>{ if(e.key==="Enter") handleLock(); });
+function enterApp(){
+  pw1.value=""; pw2.value="";
+  lock.classList.add("hidden"); app.classList.remove("hidden");
+  pl.value = data.settings.periodLength; dc.value = data.settings.defaultCycle;
+  dateInput.value = fmt(new Date());
+  render();
+}
+function relock(){
+  cryptoKey = null;
+  app.classList.add("hidden"); lock.classList.remove("hidden");
+  isSetup = !localStorage.getItem(LS.salt); refreshLockUI(); pw1.focus();
+}
+document.getElementById("relock").addEventListener("click", relock);
+
+/* ---------- 變更通關密語 ---------- */
+const pwModal = document.getElementById("pwModal");
+const npw1 = document.getElementById("npw1");
+const npw2 = document.getElementById("npw2");
+const pwErr = document.getElementById("pwErr");
+function openPwModal(){ npw1.value=""; npw2.value=""; pwErr.textContent=""; pwModal.classList.remove("hidden"); npw1.focus(); }
+function closePwModal(){ pwModal.classList.add("hidden"); }
+async function changePassword(newPw){
+  // 已解鎖狀態：data 在記憶體中，用新密語重新加密
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  cryptoKey = await deriveKey(newPw, salt);
+  localStorage.setItem(LS.salt, b64(salt));
+  localStorage.setItem(LS.check, await encStr("VALID"));
+  localStorage.setItem(LS.data, await encStr(JSON.stringify(data)));
+}
+document.getElementById("changePw").addEventListener("click", openPwModal);
+document.getElementById("pwCancel").addEventListener("click", closePwModal);
+document.getElementById("pwOk").addEventListener("click", async ()=>{
+  pwErr.textContent = "";
+  const a = npw1.value, b = npw2.value;
+  if(a.length < 6){ pwErr.textContent = "新密語至少 6 個字"; return; }
+  if(a !== b){ pwErr.textContent = "兩次輸入不一致"; return; }
+  const okBtn = document.getElementById("pwOk");
+  okBtn.disabled = true; okBtn.textContent = "處理中…";
+  try{ await changePassword(a); closePwModal(); alert("通關密語已變更，下次請用新密語解鎖"); }
+  finally{ okBtn.disabled = false; okBtn.textContent = "確定變更"; }
+});
+npw2.addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("pwOk").click(); });
+
+/* ---------- 日期工具 ---------- */
+function fmt(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function parse(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function addDays(dt,n){ const r=new Date(dt); r.setDate(r.getDate()+n); return r; }
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function sameYMD(a,b){ return fmt(a)===fmt(b); }
+function avgCycle(){
+  const p = data.periods;
+  if(p.length < 2) return { len: data.settings.defaultCycle, estimated: true };
+  let sum=0, n=0;
+  for(let i=1;i<p.length;i++){ const diff = daysBetween(parse(p[i-1]), parse(p[i])); if(diff>=15&&diff<=60){ sum+=diff; n++; } }
+  if(n===0) return { len: data.settings.defaultCycle, estimated: true };
+  return { len: Math.round(sum/n), estimated: false };
+}
+function boundaries(){
+  const p = data.periods.map(parse);
+  if(p.length===0) return [];
+  const cyc = avgCycle().len;
+  const arr = [...p]; let cur = arr[arr.length-1];
+  const limit = addDays(new Date(), 800);
+  while(cur < limit){ cur = addDays(cur, cyc); arr.push(cur); }
+  return arr;
+}
+function classify(dt, bs){
+  if(bs.length===0) return null;
+  if(dt < bs[0]) return null;
+  let i = 0;
+  for(let k=0;k<bs.length-1;k++){ if(dt>=bs[k] && dt<bs[k+1]){ i=k; break; } if(k===bs.length-2) i=bs.length-1; }
+  const S = bs[i], Snext = bs[i+1], plen = data.settings.periodLength;
+  if(dt>=S && dt<=addDays(S, plen-1)) return {st:"rest", i, S, Snext};
+  if(!Snext) return {st:null, i, S, Snext};
+  const ovu = addDays(Snext, -14);
+  if(sameYMD(dt, ovu)) return {st:"key", i, S, Snext};
+  if(dt>=addDays(ovu,-5) && dt<=addDays(ovu,4)) return {st:"busy", i, S, Snext};
+  return {st:"free", i, S, Snext};
+}
+const PHASE = { rest:"回復期", busy:"戰鬥期", key:"頭目戰", free:"城鎮（平穩）" };
+
+/* ---------- 渲染（狀態卡）---------- */
+const banner = document.getElementById("banner");
+const phaseEl = document.getElementById("phase");
+const chapEl = document.getElementById("chap");
+const cardsEl = document.getElementById("cards");
+const chipsEl = document.getElementById("chips");
+const dateInput = document.getElementById("dateInput");
+
+function render(){
+  const p = data.periods;
+  const today = new Date(new Date().toDateString());
+  const bs = boundaries();
+  const ac = avgCycle();
+
+  // 今日狀態橫幅
+  banner.className = "banner";
+  if(p.length === 0){
+    phaseEl.textContent = "尚未開始冒險";
+    chapEl.textContent = "新增第一個存檔點即可展開旅程";
+  } else {
+    const info = classify(today, bs);
+    const st = info ? info.st : null;
+    banner.classList.add(st || "");
+    phaseEl.textContent = st ? PHASE[st] : "整裝中";
+    const chapter = info ? info.i + 1 : 0;
+    const turn = info ? daysBetween(info.S, today) + 1 : 0;
+    chapEl.textContent = `第 ${chapter} 章 · 第 ${turn} 回合`;
+  }
+
+  // 數據卡
+  let cards = "";
+  cards += card("冒險章節數", p.length + " 章");
+  cards += card("平均章節長度", ac.len + " 回合" + (ac.estimated? "（預設）":""), true);
+  if(p.length>0){
+    const last = parse(p[p.length-1]);
+    const nextStart = addDays(last, ac.len);
+    const ovu = addDays(nextStart, -14);
+    const dleft = daysBetween(today, nextStart);
+    cards += card("距下個存檔點", (dleft>=0? "約 "+dleft : "已超過") + " 回合");
+    cards += card("下個存檔點", fmt(nextStart), true);
+    cards += card("下場頭目戰", fmt(ovu), true);
+    cards += card("最近一次存檔", p[p.length-1], true);
+    cards += `<div class="card wide"><div class="label">危機期間</div><div class="value sm">${fmt(addDays(ovu,-5))} ～ ${fmt(addDays(ovu,4))}</div></div>`;
+  }
+  cardsEl.innerHTML = cards;
+
+  // 存檔點清單
+  if(p.length===0){
+    chipsEl.innerHTML = `<span class="empty">尚無存檔點</span>`;
+  } else {
+    chipsEl.innerHTML = [...p].reverse().map(ds =>
+      `<span class="chip">${ds}<button data-del="${ds}" title="刪除">✕</button></span>`).join("");
+    chipsEl.querySelectorAll("button[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>removeDate(b.dataset.del));
+    });
+  }
+}
+function card(label, value, small){
+  return `<div class="card"><div class="label">${label}</div><div class="value${small?' sm':''}">${value}</div></div>`;
+}
+
+function addDate(ds){
+  if(!ds) return;
+  if(!data.periods.includes(ds)) data.periods.push(ds);
+  data.periods = [...new Set(data.periods)].sort();
+  render(); save();
+}
+function removeDate(ds){
+  const i = data.periods.indexOf(ds);
+  if(i>=0){ data.periods.splice(i,1); render(); save(); }
+}
+document.getElementById("addBtn").addEventListener("click", ()=>addDate(dateInput.value));
+
+/* ---------- 設定 ---------- */
+const pl = document.getElementById("periodLen");
+const dc = document.getElementById("defCycle");
+pl.addEventListener("change",()=>{ data.settings.periodLength = clamp(+pl.value,1,14); pl.value=data.settings.periodLength; render(); save(); });
+dc.addEventListener("change",()=>{ data.settings.defaultCycle = clamp(+dc.value,20,40); dc.value=data.settings.defaultCycle; render(); save(); });
+function clamp(v,a,b){ if(isNaN(v))return a; return Math.min(b,Math.max(a,v)); }
+
+/* ---------- 備份 / 讀取（加密包）---------- */
+document.getElementById("export").onclick=()=>{
+  const bundle = { v:1, salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
+  const blob = new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "adventure-save.json"; a.click();
+};
+document.getElementById("import").onclick=()=>document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange=(e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload=()=>{
+    try{
+      const b = JSON.parse(r.result);
+      if(!b.salt || !b.check || !b.data) throw 0;
+      localStorage.setItem(LS.salt, b.salt); localStorage.setItem(LS.check, b.check); localStorage.setItem(LS.data, b.data);
+      alert("已載入備份，請用該備份的通關密語解鎖"); relock();
+    }catch(err){ alert("備份檔格式不正確"); }
+  };
+  r.readAsText(f);
+};
+document.getElementById("clear").onclick=()=>{
+  if(confirm("確定刪除全部進度與通關密語？此動作無法復原，建議先備份。")){
+    localStorage.removeItem(LS.salt); localStorage.removeItem(LS.check); localStorage.removeItem(LS.data);
+    cryptoKey = null; relock();
+  }
+};
+
+pw1.focus();
+</script>
+</body>
+</html>
