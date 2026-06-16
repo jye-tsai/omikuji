@@ -241,6 +241,13 @@
   #unlockModal .row button{flex:1;padding:12px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;border:1px solid var(--border);}
   #unlockModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
   #unlockModal .row .cancel{background:var(--card);color:var(--muted);}
+  .pin-input{text-align:center!important;letter-spacing:8px;font-size:22px!important;}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px;}
+  .keypad button{padding:14px 0;font-size:20px;font-weight:700;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;}
+  .keypad button:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .keypad .kp-mute{font-size:15px;color:var(--muted);font-weight:600;}
+  /* 桌機(精準指標+可 hover)隱藏數字鍵盤，用實體鍵盤打字；手機/觸控才顯示 */
+  @media (hover:hover) and (pointer:fine){ .keypad{display:none;} }
   .hidden{display:none!important;}
 </style>
 </head>
@@ -258,9 +265,22 @@
   <div class="mbox">
     <h3 id="unlockTitle">🔒 解鎖</h3>
     <p id="lockDesc" class="mhint"></p>
+    <input type="password" id="pw1" class="pin-input" inputmode="numeric" autocomplete="current-password" placeholder="通關密語">
+    <div class="keypad" id="keypad">
+      <button type="button" data-k="1">1</button>
+      <button type="button" data-k="2">2</button>
+      <button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button>
+      <button type="button" data-k="5">5</button>
+      <button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button>
+      <button type="button" data-k="8">8</button>
+      <button type="button" data-k="9">9</button>
+      <button type="button" class="kp-mute" data-k="clear">清除</button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" class="kp-mute" data-k="back">⌫</button>
+    </div>
     <div class="err" id="lockErr"></div>
-    <input type="password" id="pw1" placeholder="通關密語" autocomplete="off">
-    <input type="password" id="pw2" placeholder="再輸入一次" autocomplete="off" class="hidden">
     <div class="row">
       <button class="cancel" id="unlockCancel">取消</button>
       <button class="ok" id="lockBtn">解鎖</button>
@@ -271,14 +291,27 @@
 <!-- 變更通關密語 -->
 <div id="pwModal" class="hidden">
   <div class="box">
-    <h2>🔑 變更通關密語</h2>
-    <p>用新密語重新加密你的資料</p>
+    <h2 id="pwTitle">🔑 變更密語</h2>
+    <p id="pwDesc">輸入新的通關密語（至少 6 位）</p>
+    <input type="password" id="npw1" class="pin-input" inputmode="numeric" autocomplete="new-password" placeholder="新通關密語">
+    <div class="keypad" id="keypad2">
+      <button type="button" data-k="1">1</button>
+      <button type="button" data-k="2">2</button>
+      <button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button>
+      <button type="button" data-k="5">5</button>
+      <button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button>
+      <button type="button" data-k="8">8</button>
+      <button type="button" data-k="9">9</button>
+      <button type="button" class="kp-mute" data-k="clear">清除</button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" class="kp-mute" data-k="back">⌫</button>
+    </div>
     <div class="err" id="pwErr"></div>
-    <input type="password" id="npw1" placeholder="新通關密語（至少 6 個字）" autocomplete="off">
-    <input type="password" id="npw2" placeholder="再輸入一次新密語" autocomplete="off">
     <div class="row">
       <button class="cancel" id="pwCancel">取消</button>
-      <button class="ok" id="pwOk">確定變更</button>
+      <button class="ok" id="pwOk">下一步</button>
     </div>
   </div>
 </div>
@@ -473,56 +506,73 @@ const lock = document.getElementById("lock");
 const app = document.getElementById("app");
 const unlockModal = document.getElementById("unlockModal");
 const pw1 = document.getElementById("pw1");
-const pw2 = document.getElementById("pw2");
 const lockErr = document.getElementById("lockErr");
 const lockBtn = document.getElementById("lockBtn");
 const lockDesc = document.getElementById("lockDesc");
 const unlockTitle = document.getElementById("unlockTitle");
 let isSetup = !localStorage.getItem(LS.salt);
+let setupFirst = null;   // 設定密語時暫存第一次輸入
 
 function refreshLockUI(){
-  if(isSetup){
-    unlockTitle.textContent = "🔑 設定密語";
-    lockDesc.innerHTML = "首次使用，請設定通關密語（至少 6 個字）<br><span style='color:#e0394e'>忘記將無法復原資料，請牢記</span>";
-    pw2.classList.remove("hidden"); lockBtn.textContent = "建立";
-  } else {
+  if(!isSetup){
     unlockTitle.textContent = "🔒 解鎖";
     lockDesc.textContent = "輸入通關密語以檢視";
-    pw2.classList.add("hidden"); lockBtn.textContent = "解鎖";
+    lockBtn.textContent = "解鎖";
+  } else if(setupFirst === null){
+    unlockTitle.textContent = "🔑 設定密語";
+    lockDesc.textContent = "首次使用，請設定通關密語（至少 6 位）";
+    lockBtn.textContent = "下一步";
+  } else {
+    unlockTitle.textContent = "🔑 設定密語";
+    lockDesc.innerHTML = "請再輸入一次確認<br><span style='color:#e0394e'>忘記將無法復原資料</span>";
+    lockBtn.textContent = "建立";
   }
 }
 refreshLockUI();
 function openUnlock(){
   isSetup = !localStorage.getItem(LS.salt);
+  setupFirst = null;
+  pw1.value=""; lockErr.textContent="";
   refreshLockUI();
-  pw1.value=""; pw2.value=""; lockErr.textContent="";
   unlockModal.classList.remove("hidden");
   setTimeout(()=>pw1.focus(), 50);
 }
 function closeUnlock(){ unlockModal.classList.add("hidden"); }
+function pinKey(k){
+  if(k==="back") pw1.value = pw1.value.slice(0,-1);
+  else if(k==="clear") pw1.value = "";
+  else if(pw1.value.length < 32) pw1.value += k;
+}
+document.getElementById("keypad").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  pinKey(b.dataset.k);
+});
 async function handleLock(){
   lockErr.textContent = "";
-  const p1 = pw1.value;
-  if(!p1){ lockErr.textContent = "請輸入通關密語"; return; }
-  lockBtn.disabled = true; const lbl = lockBtn.textContent; lockBtn.textContent = "處理中…";
+  const v = pw1.value;
+  if(!v){ lockErr.textContent = "請輸入通關密語"; return; }
+  lockBtn.disabled = true; lockBtn.textContent = "處理中…";
   try{
-    if(isSetup){
-      if(p1.length < 6){ lockErr.textContent = "密語至少 6 個字"; return; }
-      if(p1 !== pw2.value){ lockErr.textContent = "兩次輸入不一致"; return; }
-      await setupPassword(p1); enterApp();
-    } else {
-      const ok = await unlock(p1);
-      if(!ok){ lockErr.textContent = "密語錯誤"; return; }
-      enterApp();
+    if(!isSetup){
+      const ok = await unlock(v);
+      if(!ok){ lockErr.textContent = "密語錯誤"; pw1.value=""; return; }
+      enterApp(); return;
     }
-  } finally { lockBtn.disabled = false; lockBtn.textContent = lbl; }
+    if(setupFirst === null){
+      if(v.length < 6){ lockErr.textContent = "密語至少 6 位"; return; }
+      setupFirst = v; pw1.value="";
+    } else if(v !== setupFirst){
+      lockErr.textContent = "兩次不一致，請重新設定"; setupFirst = null; pw1.value="";
+    } else {
+      await setupPassword(setupFirst); enterApp(); return;
+    }
+  } finally { lockBtn.disabled = false; refreshLockUI(); }
 }
 lockBtn.addEventListener("click", handleLock);
 document.getElementById("unlockCancel").addEventListener("click", closeUnlock);
-pw1.addEventListener("keydown", e=>{ if(e.key==="Enter"){ isSetup ? pw2.focus() : handleLock(); }});
-pw2.addEventListener("keydown", e=>{ if(e.key==="Enter") handleLock(); });
+pw1.addEventListener("keydown", e=>{ if(e.key==="Enter") handleLock(); });
 function enterApp(){
-  pw1.value=""; pw2.value="";
+  pw1.value=""; setupFirst=null;
   closeUnlock();
   lock.classList.add("hidden"); app.classList.remove("hidden");
   pl.value = data.settings.periodLength; dc.value = data.settings.defaultCycle;
@@ -541,10 +591,23 @@ document.getElementById("relock").addEventListener("click", relock);
 /* ---------- 變更通關密語 ---------- */
 const pwModal = document.getElementById("pwModal");
 const npw1 = document.getElementById("npw1");
-const npw2 = document.getElementById("npw2");
 const pwErr = document.getElementById("pwErr");
-function openPwModal(){ npw1.value=""; npw2.value=""; pwErr.textContent=""; pwModal.classList.remove("hidden"); npw1.focus(); }
+const pwDesc = document.getElementById("pwDesc");
+const pwOkBtn2 = document.getElementById("pwOk");
+let pwFirst = null;   // 變更密語時暫存第一次輸入
+function refreshPwUI(){
+  if(pwFirst === null){ pwDesc.textContent = "輸入新的通關密語（至少 6 位）"; pwOkBtn2.textContent = "下一步"; }
+  else { pwDesc.innerHTML = "請再輸入一次確認"; pwOkBtn2.textContent = "確定變更"; }
+}
+function openPwModal(){ pwFirst=null; npw1.value=""; pwErr.textContent=""; refreshPwUI(); pwModal.classList.remove("hidden"); setTimeout(()=>npw1.focus(),50); }
 function closePwModal(){ pwModal.classList.add("hidden"); }
+document.getElementById("keypad2").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  const k = b.dataset.k;
+  if(k==="back") npw1.value = npw1.value.slice(0,-1);
+  else if(k==="clear") npw1.value = "";
+  else if(npw1.value.length < 32) npw1.value += k;
+});
 async function changePassword(newPw){
   // 已解鎖狀態：data 在記憶體中，用新密語重新加密
   const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -557,17 +620,20 @@ async function changePassword(newPw){
 }
 document.getElementById("changePw").addEventListener("click", openPwModal);
 document.getElementById("pwCancel").addEventListener("click", closePwModal);
-document.getElementById("pwOk").addEventListener("click", async ()=>{
+pwOkBtn2.addEventListener("click", async ()=>{
   pwErr.textContent = "";
-  const a = npw1.value, b = npw2.value;
-  if(a.length < 6){ pwErr.textContent = "新密語至少 6 個字"; return; }
-  if(a !== b){ pwErr.textContent = "兩次輸入不一致"; return; }
-  const okBtn = document.getElementById("pwOk");
-  okBtn.disabled = true; okBtn.textContent = "處理中…";
-  try{ await changePassword(a); closePwModal(); alert("通關密語已變更，下次請用新密語解鎖"); }
-  finally{ okBtn.disabled = false; okBtn.textContent = "確定變更"; }
+  const v = npw1.value;
+  if(!v){ pwErr.textContent = "請輸入新密語"; return; }
+  if(pwFirst === null){
+    if(v.length < 6){ pwErr.textContent = "新密語至少 6 位"; return; }
+    pwFirst = v; npw1.value=""; refreshPwUI(); return;
+  }
+  if(v !== pwFirst){ pwErr.textContent = "兩次不一致，請重新設定"; pwFirst=null; npw1.value=""; refreshPwUI(); return; }
+  pwOkBtn2.disabled = true; pwOkBtn2.textContent = "處理中…";
+  try{ await changePassword(pwFirst); closePwModal(); alert("通關密語已變更，下次請用新密語解鎖"); }
+  finally{ pwOkBtn2.disabled = false; pwFirst=null; refreshPwUI(); }
 });
-npw2.addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("pwOk").click(); });
+npw1.addEventListener("keydown", e=>{ if(e.key==="Enter") pwOkBtn2.click(); });
 
 /* ---------- GitHub 同步 ---------- */
 const GH = { owner:"al_gh_owner", repo:"al_gh_repo", path:"al_gh_path", token:"al_gh_token", auto:"al_gh_auto" };
