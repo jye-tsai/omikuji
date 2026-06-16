@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>今日運勢</title>
+<!-- PWA：可加到主畫面、全螢幕、離線 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0284c7">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="今日運勢">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
 <style>
   /* ===== 主題（與小財庫同一套）===== */
   :root,
@@ -206,20 +219,52 @@
   #ghModal .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   #ghModal .row button{flex:1;min-width:88px;padding:10px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);}
   #ghModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
+  /* 下拉重新整理指示器 */
+  #ptr{position:fixed;top:calc(env(safe-area-inset-top) + 4px);left:50%;transform:translateX(-50%) translateY(-60px);
+    background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:7px 16px;
+    font-size:13px;font-weight:700;box-shadow:var(--shadow);z-index:140;opacity:0;display:flex;gap:7px;align-items:center;pointer-events:none;}
+  #ptr.spin .ptr-ico{animation:ptrSpin .7s linear infinite;display:inline-block;}
+  @keyframes ptrSpin{to{transform:rotate(360deg);}}
+  /* 首頁提示 + 可點印章 */
+  .lock-tip{font-size:13px;color:var(--muted);margin-top:16px;}
+  #lockFortune{cursor:default;}
+  #lockFortune .ft-seal{cursor:pointer;}
+  /* 解鎖視窗（小財庫式）*/
+  #unlockModal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:130;}
+  #unlockModal .mbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 22px;max-width:330px;width:100%;box-shadow:var(--shadow);text-align:center;}
+  #unlockModal h3{font-size:18px;margin:0 0 6px;color:var(--title);}
+  #unlockModal .mhint{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.6;}
+  #unlockModal .err{color:#e0394e;font-size:13px;min-height:16px;margin-bottom:6px;}
+  #unlockModal input{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px;background:var(--card);color:var(--text);}
+  #unlockModal input:focus{outline:none;border-color:var(--accent);}
+  #unlockModal .row{display:flex;gap:8px;}
+  #unlockModal .row button{flex:1;padding:12px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;border:1px solid var(--border);}
+  #unlockModal .row .ok{background:var(--accent);color:#fff;border-color:var(--accent);}
+  #unlockModal .row .cancel{background:var(--card);color:var(--muted);}
   .hidden{display:none!important;}
 </style>
 </head>
 <body>
 
-<!-- 鎖定 / 設定密碼畫面 -->
+<!-- 首頁（公開）：只顯示籤詩；輕觸印章才會跳出解鎖 -->
 <div id="lock">
   <div class="box">
     <div class="fortune" id="lockFortune"></div>
+  </div>
+</div>
+
+<!-- 解鎖視窗（點印章才出現）-->
+<div id="unlockModal" class="hidden">
+  <div class="mbox">
+    <h3 id="unlockTitle">🔒 解鎖</h3>
+    <p id="lockDesc" class="mhint"></p>
     <div class="err" id="lockErr"></div>
     <input type="password" id="pw1" placeholder="通關密語" autocomplete="off">
     <input type="password" id="pw2" placeholder="再輸入一次" autocomplete="off" class="hidden">
-    <button id="lockBtn">進入</button>
-    <p id="lockDesc" style="margin:10px 0 0"></p>
+    <div class="row">
+      <button class="cancel" id="unlockCancel">取消</button>
+      <button class="ok" id="lockBtn">解鎖</button>
+    </div>
   </div>
 </div>
 
@@ -423,31 +468,46 @@ function normalize(d){
   return d;
 }
 
-/* ---------- 鎖定畫面流程 ---------- */
+/* ---------- 鎖定流程：首頁公開，點印章才解鎖 ---------- */
 const lock = document.getElementById("lock");
 const app = document.getElementById("app");
+const unlockModal = document.getElementById("unlockModal");
 const pw1 = document.getElementById("pw1");
 const pw2 = document.getElementById("pw2");
 const lockErr = document.getElementById("lockErr");
 const lockBtn = document.getElementById("lockBtn");
 const lockDesc = document.getElementById("lockDesc");
+const unlockTitle = document.getElementById("unlockTitle");
 let isSetup = !localStorage.getItem(LS.salt);
 
 function refreshLockUI(){
   if(isSetup){
-    lockDesc.innerHTML = "首次使用，請設定通關密語（至少 6 個字，建議用一句好記的長句）<br><span style='color:#e0394e'>忘記將無法復原資料，請牢記</span>";
+    unlockTitle.textContent = "🔑 設定密語";
+    lockDesc.innerHTML = "首次使用，請設定通關密語（至少 6 個字）<br><span style='color:#e0394e'>忘記將無法復原資料，請牢記</span>";
     pw2.classList.remove("hidden"); lockBtn.textContent = "建立";
-  } else { lockDesc.textContent = "請輸入通關密語"; pw2.classList.add("hidden"); lockBtn.textContent = "進入"; }
+  } else {
+    unlockTitle.textContent = "🔒 解鎖";
+    lockDesc.textContent = "輸入通關密語以檢視";
+    pw2.classList.add("hidden"); lockBtn.textContent = "解鎖";
+  }
 }
 refreshLockUI();
+function openUnlock(){
+  isSetup = !localStorage.getItem(LS.salt);
+  refreshLockUI();
+  pw1.value=""; pw2.value=""; lockErr.textContent="";
+  unlockModal.classList.remove("hidden");
+  setTimeout(()=>pw1.focus(), 50);
+}
+function closeUnlock(){ unlockModal.classList.add("hidden"); }
 async function handleLock(){
   lockErr.textContent = "";
   const p1 = pw1.value;
   if(!p1){ lockErr.textContent = "請輸入通關密語"; return; }
-  lockBtn.disabled = true; lockBtn.textContent = "處理中…";
+  lockBtn.disabled = true; const lbl = lockBtn.textContent; lockBtn.textContent = "處理中…";
   try{
     if(isSetup){
-      if(p1.length < 6){ lockErr.textContent = "密語至少 6 個字（越長越安全，建議用好記的句子）"; return; }
+      if(p1.length < 6){ lockErr.textContent = "密語至少 6 個字"; return; }
       if(p1 !== pw2.value){ lockErr.textContent = "兩次輸入不一致"; return; }
       await setupPassword(p1); enterApp();
     } else {
@@ -455,13 +515,15 @@ async function handleLock(){
       if(!ok){ lockErr.textContent = "密語錯誤"; return; }
       enterApp();
     }
-  } finally { lockBtn.disabled = false; refreshLockUI(); }
+  } finally { lockBtn.disabled = false; lockBtn.textContent = lbl; }
 }
 lockBtn.addEventListener("click", handleLock);
+document.getElementById("unlockCancel").addEventListener("click", closeUnlock);
 pw1.addEventListener("keydown", e=>{ if(e.key==="Enter"){ isSetup ? pw2.focus() : handleLock(); }});
 pw2.addEventListener("keydown", e=>{ if(e.key==="Enter") handleLock(); });
 function enterApp(){
   pw1.value=""; pw2.value="";
+  closeUnlock();
   lock.classList.add("hidden"); app.classList.remove("hidden");
   pl.value = data.settings.periodLength; dc.value = data.settings.defaultCycle;
   dateInput.value = fmt(new Date());
@@ -471,8 +533,8 @@ function enterApp(){
 }
 function relock(){
   cryptoKey = null; clearSessionKey();
-  app.classList.add("hidden"); lock.classList.remove("hidden");
-  isSetup = !localStorage.getItem(LS.salt); refreshLockUI(); renderLockFortune(); pw1.focus();
+  app.classList.add("hidden"); closeUnlock(); lock.classList.remove("hidden");
+  isSetup = !localStorage.getItem(LS.salt); refreshLockUI(); renderLockFortune();
 }
 document.getElementById("relock").addEventListener("click", relock);
 
@@ -821,7 +883,7 @@ function buildSealCache(){
   }
   localStorage.setItem(SEAL_CACHE, JSON.stringify(map));
 }
-// 鎖定畫面的籤詩：印章從快取讀(解密前算不出階段，故先存好)
+// 首頁籤詩：印章一律顯示（有快取就顯示當天暗碼，否則顯示中性字），點印章＝解鎖
 function renderLockFortune(){
   const el = document.getElementById("lockFortune");
   if(!el) return;
@@ -829,11 +891,13 @@ function renderLockFortune(){
   let seal = "";
   try{ seal = (JSON.parse(localStorage.getItem(SEAL_CACHE) || "{}"))[fmt(today)] || ""; }catch(e){}
   el.innerHTML = `
-    ${seal ? `<div class="ft-seal">${seal}</div>` : ""}
+    <div class="ft-seal" id="lockSeal" title="求籤">${seal || "運"}</div>
     <div class="ft-no">第 ${fortuneNo(today)} 籤</div>
     <div class="ft-name">${fortuneName(today)}</div>
     <div class="ft-poem">${dailyPoem(today)}</div>
     <div class="ft-jie"><b>解曰</b>　${fortuneJie(today)}</div>`;
+  const s = document.getElementById("lockSeal");
+  if(s) s.addEventListener("click", openUnlock);
 }
 
 function renderChips(){
@@ -915,12 +979,47 @@ async function loadRemoteData(){
   if(b.salt !== oldSalt) clearSessionKey();   // 對方改過密語 → 需重新解鎖
 }
 
+/* ---------- 下拉重新整理（手機/PWA）---------- */
+(function(){
+  if(!document.body) return;
+  const ind = document.createElement("div");
+  ind.id = "ptr";
+  ind.innerHTML = '<span class="ptr-ico">↓</span><span class="ptr-txt">下拉重新整理</span>';
+  document.body.appendChild(ind);
+  const txt = ind.querySelector(".ptr-txt"), ico = ind.querySelector(".ptr-ico");
+  let startY=0, dy=0, active=false; const TH=70;
+  addEventListener("touchstart", e=>{ if(window.scrollY<=0 && e.touches.length===1){ startY=e.touches[0].clientY; active=true; dy=0; } }, {passive:true});
+  addEventListener("touchmove", e=>{
+    if(!active) return;
+    dy = e.touches[0].clientY - startY;
+    if(dy>0 && window.scrollY<=0){
+      ind.style.transition="none";
+      ind.style.transform=`translateX(-50%) translateY(${Math.min(dy,90)-60}px)`;
+      ind.style.opacity=String(Math.min(1, dy/TH));
+      txt.textContent = dy>=TH ? "放開重新整理" : "下拉重新整理";
+      ico.style.transform = dy>=TH ? "rotate(180deg)" : "rotate(0)";
+    }
+  }, {passive:true});
+  addEventListener("touchend", ()=>{
+    if(!active) return; active=false;
+    ind.style.transition="transform .25s ease, opacity .25s ease";
+    if(dy>=TH){
+      txt.textContent="更新中…"; ico.textContent="⟳"; ind.classList.add("spin");
+      ind.style.transform="translateX(-50%) translateY(0)"; ind.style.opacity="1";
+      setTimeout(()=>location.reload(), 300);
+    } else {
+      ind.style.transform="translateX(-50%) translateY(-60px)"; ind.style.opacity="0";
+    }
+    dy=0;
+  }, {passive:true});
+})();
+
 (async ()=>{
   await loadRemoteData();
   isSetup = !localStorage.getItem(LS.salt);
   refreshLockUI();
   if(await tryRestore()){ enterApp(); }
-  else { renderLockFortune(); pw1.focus(); }
+  else { renderLockFortune(); }
 })();
 </script>
 </body>
