@@ -385,6 +385,7 @@ async function setupPassword(pw){
   localStorage.setItem(LS.check, await encStr("VALID"));
   data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } };
   localStorage.setItem(LS.data, await encStr(JSON.stringify(data)));
+  localStorage.setItem("al_updated", new Date().toISOString());
 }
 async function unlock(pw){
   const salt = unb64(localStorage.getItem(LS.salt));
@@ -395,7 +396,7 @@ async function unlock(pw){
   catch(e){ data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } }; }
   return true;
 }
-async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); buildSealCache(); autoSync(); }
+async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); localStorage.setItem("al_updated", new Date().toISOString()); buildSealCache(); autoSync(); }
 
 /* ---------- 登入狀態（sessionStorage：刷新保持、關閉分頁自動上鎖）---------- */
 const SK = "al_session_key";
@@ -489,6 +490,7 @@ async function changePassword(newPw){
   localStorage.setItem(LS.salt, b64(salt));
   localStorage.setItem(LS.check, await encStr("VALID"));
   localStorage.setItem(LS.data, await encStr(JSON.stringify(data)));
+  localStorage.setItem("al_updated", new Date().toISOString());
   await cacheSessionKey();
 }
 document.getElementById("changePw").addEventListener("click", openPwModal);
@@ -541,7 +543,7 @@ function ghSaveCfg(){
 function ghUrl(c){ return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${encodeURIComponent(c.path).replace(/%2F/g,"/")}`; }
 function ghHeaders(c){ return { "Authorization":"Bearer "+c.token, "Accept":"application/vnd.github+json" }; }
 function currentBundleStr(){
-  const bundle = { v:1, salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
+  const bundle = { v:1, updated:localStorage.getItem("al_updated")||"", salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
   return JSON.stringify(bundle, null, 2);
 }
 async function ghGetFile(c){
@@ -576,6 +578,7 @@ async function ghDownload(){
     localStorage.setItem(LS.salt, bundle.salt);
     localStorage.setItem(LS.check, bundle.check);
     localStorage.setItem(LS.data, bundle.data);
+    localStorage.setItem("al_updated", bundle.updated || new Date().toISOString());
     ghSetStatus("✅ 已下載，請用密語解鎖");
     closeGhModal(); relock();
   }catch(e){ ghSetStatus(e.message, true); }
@@ -840,7 +843,7 @@ function clamp(v,a,b){ if(isNaN(v))return a; return Math.min(b,Math.max(a,v)); }
 
 /* ---------- 備份 / 讀取（加密包）---------- */
 document.getElementById("export").onclick=()=>{
-  const bundle = { v:1, salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
+  const bundle = { v:1, updated:localStorage.getItem("al_updated")||"", salt:localStorage.getItem(LS.salt), check:localStorage.getItem(LS.check), data:localStorage.getItem(LS.data) };
   const blob = new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "omikuji.json"; a.click();
 };
@@ -853,6 +856,7 @@ document.getElementById("fileInput").onchange=(e)=>{
       const b = JSON.parse(r.result);
       if(!b.salt || !b.check || !b.data) throw 0;
       localStorage.setItem(LS.salt, b.salt); localStorage.setItem(LS.check, b.check); localStorage.setItem(LS.data, b.data);
+      localStorage.setItem("al_updated", b.updated || new Date().toISOString());
       alert("已載入備份，請用該備份的通關密語解鎖"); relock();
     }catch(err){ alert("備份檔格式不正確"); }
   };
@@ -865,7 +869,29 @@ document.getElementById("clear").onclick=()=>{
   }
 };
 
+// 開啟時先讀同目錄 data.json（加密包）；比本機新或本機無資料時才採用，避免蓋掉未上傳的編輯
+async function loadRemoteData(){
+  try{
+    const r = await fetch("./data.json", { cache:"no-store" });
+    if(!r.ok) return;
+    const b = await r.json();
+    if(!b || !b.salt || !b.check || !b.data) return;
+    const localU = localStorage.getItem("al_updated") || "";
+    const remoteU = b.updated || "";
+    if(localStorage.getItem(LS.data) && remoteU <= localU) return;   // 本機較新 → 保留
+    const oldSalt = localStorage.getItem(LS.salt);
+    localStorage.setItem(LS.salt, b.salt);
+    localStorage.setItem(LS.check, b.check);
+    localStorage.setItem(LS.data, b.data);
+    localStorage.setItem("al_updated", remoteU || new Date().toISOString());
+    if(b.salt !== oldSalt) clearSessionKey();   // 對方改過密語 → 需重新解鎖
+  }catch(e){}
+}
+
 (async ()=>{
+  await loadRemoteData();
+  isSetup = !localStorage.getItem(LS.salt);
+  refreshLockUI();
   if(await tryRestore()){ enterApp(); }
   else { renderLockFortune(); pw1.focus(); }
 })();
