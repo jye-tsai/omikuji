@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>冒險日誌</title>
+<title>今日運勢</title>
 <style>
   /* ===== 主題（與小財庫同一套）===== */
   :root,
@@ -125,6 +125,34 @@
   .card .value.sm{font-size:19px;}
   .card.wide{grid-column:1/-1;}
 
+  /* 七日預報 */
+  .fc{display:flex;gap:6px;justify-content:space-between;}
+  .fc-day{flex:1;text-align:center;padding:12px 2px;border-radius:12px;border:1px solid transparent;}
+  .fc-day.now{background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:var(--accent);}
+  .fc-dow{font-size:12px;color:var(--muted);font-weight:700;}
+  .fc-ico{font-size:26px;margin:8px 0 6px;}
+  .fc-lbl{font-size:12px;color:var(--text);font-weight:700;}
+  .fc-date{font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums;}
+  /* 每日籤詩 */
+  .fortune{position:relative;text-align:center;padding:20px 16px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--accent) 6%,var(--card));margin-bottom:14px;}
+  .ft-no{font-size:13px;color:var(--muted);letter-spacing:.2em;margin-bottom:8px;}
+  /* 紅色印章效果(元亨利貞=私人暗碼) */
+  .ft-seal{position:absolute;top:14px;right:14px;width:42px;height:42px;transform:rotate(-7deg);
+    display:flex;align-items:center;justify-content:center;border:2.5px solid #c0392b;border-radius:8px;
+    color:#c0392b;font-size:23px;font-weight:800;opacity:.82;
+    font-family:"KaiTi","DFKai-SB","STKaiti","Noto Serif TC","Microsoft JhengHei",serif;
+    box-shadow:inset 0 0 0 1px rgba(192,57,43,.35);}
+  /* 鎖定畫面的印章：更小、更淡 */
+  #lockFortune .ft-seal{top:12px;right:12px;width:26px;height:26px;font-size:14px;border-width:2px;opacity:.32;}
+  .ft-name{display:inline-block;font-size:15px;font-weight:850;color:#fff;background:var(--rest);padding:5px 18px;border-radius:20px;letter-spacing:.12em;}
+  .ft-poem{font-size:21px;font-weight:700;color:var(--title);line-height:1.95;margin:16px 0;letter-spacing:.05em;}
+  .ft-jie{font-size:14px;color:var(--muted);}
+  .ft-jie b{color:var(--text);}
+  .alm-row{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid var(--border);font-size:14px;}
+  .alm-row:last-child{border-bottom:none;}
+  .alm-d{color:var(--muted);font-variant-numeric:tabular-nums;}
+  .alm-tag{font-weight:700;color:var(--text);}
+
   /* 記錄區 */
   .record-row{display:flex;gap:8px;margin-bottom:12px;}
   .record-row input{flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;font-size:16px;background:var(--card);color:var(--text);}
@@ -186,13 +214,12 @@
 <!-- 鎖定 / 設定密碼畫面 -->
 <div id="lock">
   <div class="box">
-    <div class="emo">⚔</div>
-    <h2>冒險日誌</h2>
-    <p id="lockDesc">請輸入通關密語</p>
+    <div class="fortune" id="lockFortune"></div>
     <div class="err" id="lockErr"></div>
     <input type="password" id="pw1" placeholder="通關密語" autocomplete="off">
     <input type="password" id="pw2" placeholder="再輸入一次" autocomplete="off" class="hidden">
     <button id="lockBtn">進入</button>
+    <p id="lockDesc" style="margin:10px 0 0"></p>
   </div>
 </div>
 
@@ -238,7 +265,7 @@
 
 <div class="container hidden" id="app">
   <header>
-    <h1><span class="brand-icon">⚔</span> 冒險日誌</h1>
+    <h1><span class="brand-icon" id="brandIcon">⚔</span> <span id="brandText">冒險日誌</span></h1>
     <div class="toolbar">
       <select class="btn" id="theme-sel" title="切換風格">
         <option value="ocean">🌊 海洋藍</option>
@@ -249,20 +276,35 @@
         <option value="sailor">🌙 美少女</option>
         <option value="agent">🧬 Agent Neon</option>
       </select>
+      <select class="btn" id="view-sel" title="切換檢視">
+        <option value="status">🃏 狀態卡</option>
+        <option value="forecast">🌤️ 七日預報</option>
+        <option value="fortune">🎴 每日籤詩</option>
+      </select>
       <button class="btn" id="changePw">🔑 變更密語</button>
       <button class="btn" id="ghBtn">🔗 GitHub</button>
       <button class="btn" id="relock">🔒 鎖定</button>
     </div>
   </header>
 
-  <!-- 今日狀態 -->
-  <div class="banner" id="banner">
-    <div class="phase" id="phase">—</div>
-    <div class="chap" id="chap"></div>
+  <!-- 檢視：狀態卡 -->
+  <div id="viewStatus">
+    <div class="banner" id="banner">
+      <div class="phase" id="phase">—</div>
+      <div class="chap" id="chap"></div>
+    </div>
+    <div class="cards" id="cards"></div>
   </div>
 
-  <!-- 數據卡 -->
-  <div class="cards" id="cards"></div>
+  <!-- 檢視：七日預報 -->
+  <div id="viewForecast" class="panel hidden">
+    <div id="forecastBody"></div>
+  </div>
+
+  <!-- 檢視：每日籤詩 -->
+  <div id="viewFortune" class="panel hidden">
+    <div id="fortuneBody"></div>
+  </div>
 
   <!-- 記錄存檔點 -->
   <div class="panel" style="margin-top:16px">
@@ -296,7 +338,7 @@
   </div>
 
   <div class="foot">
-    ※ 以上為依章節長度推算的冒險預測，實際進度會因狀態、休息、心情而變動，僅供參考，不建議作為任何重要決定的唯一依據。
+    ※ 冒險日誌的章節與各項預測僅依你記錄的存檔點推算，實際進度會因身體狀況、作息、心情而變動；籤詩純為每日趣味。一切僅供參考，請勿作為任何重要決定的唯一依據。
   </div>
 </div>
 
@@ -353,7 +395,7 @@ async function unlock(pw){
   catch(e){ data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } }; }
   return true;
 }
-async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); autoSync(); }
+async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); buildSealCache(); autoSync(); }
 
 /* ---------- 登入狀態（sessionStorage：刷新保持、關閉分頁自動上鎖）---------- */
 const SK = "al_session_key";
@@ -423,12 +465,13 @@ function enterApp(){
   pl.value = data.settings.periodLength; dc.value = data.settings.defaultCycle;
   dateInput.value = fmt(new Date());
   render();
+  buildSealCache();
   cacheSessionKey();
 }
 function relock(){
   cryptoKey = null; clearSessionKey();
   app.classList.add("hidden"); lock.classList.remove("hidden");
-  isSetup = !localStorage.getItem(LS.salt); refreshLockUI(); pw1.focus();
+  isSetup = !localStorage.getItem(LS.salt); refreshLockUI(); renderLockFortune(); pw1.focus();
 }
 document.getElementById("relock").addEventListener("click", relock);
 
@@ -595,13 +638,34 @@ const cardsEl = document.getElementById("cards");
 const chipsEl = document.getElementById("chips");
 const dateInput = document.getElementById("dateInput");
 
+/* ---- 檢視切換 ---- */
+const VIEW_KEY = "al_view";
+const viewSel = document.getElementById("view-sel");
+(function initView(){ viewSel.value = localStorage.getItem(VIEW_KEY) || "status"; })();
+viewSel.addEventListener("change", ()=>{ localStorage.setItem(VIEW_KEY, viewSel.value); render(); });
+
+const VIEW_MAP = { status:"viewStatus", forecast:"viewForecast", fortune:"viewFortune" };
+const RENDERERS = { forecast:renderForecast, fortune:renderFortune, status:renderStatus };
+const VIEW_HEAD = {
+  status:    { icon:"⚔", title:"冒險日誌" },
+  forecast:  { icon:"🌤️", title:"一週天氣" },
+  fortune:   { icon:"🎴", title:"今日籤詩" }
+};
 function render(){
+  const v = VIEW_MAP[localStorage.getItem(VIEW_KEY)] ? localStorage.getItem(VIEW_KEY) : "status";
+  Object.entries(VIEW_MAP).forEach(([k,id])=> document.getElementById(id).classList.toggle("hidden", k!==v));
+  const head = VIEW_HEAD[v] || VIEW_HEAD.status;
+  document.getElementById("brandIcon").textContent = head.icon;
+  document.getElementById("brandText").textContent = head.title;
+  (RENDERERS[v] || renderStatus)();
+  renderChips();
+}
+
+function renderStatus(){
   const p = data.periods;
   const today = new Date(new Date().toDateString());
   const bs = boundaries();
   const ac = avgCycle();
-
-  // 今日狀態橫幅
   banner.className = "banner";
   if(p.length === 0){
     phaseEl.textContent = "尚未開始冒險";
@@ -615,8 +679,6 @@ function render(){
     const turn = info ? daysBetween(info.S, today) + 1 : 0;
     chapEl.textContent = `第 ${chapter} 章 · 第 ${turn} 回合`;
   }
-
-  // 數據卡
   let cards = "";
   cards += card("冒險章節數", p.length + " 章");
   cards += card("平均章節長度", ac.len + " 回合" + (ac.estimated? "（預設）":""), true);
@@ -632,20 +694,129 @@ function render(){
     cards += `<div class="card wide"><div class="label">危機期間</div><div class="value sm">${fmt(addDays(ovu,-5))} ～ ${fmt(addDays(ovu,4))}</div></div>`;
   }
   cardsEl.innerHTML = cards;
-
-  // 存檔點清單
-  if(p.length===0){
-    chipsEl.innerHTML = `<span class="empty">尚無存檔點</span>`;
-  } else {
-    chipsEl.innerHTML = [...p].reverse().map(ds =>
-      `<span class="chip">${ds}<button data-del="${ds}" title="刪除">✕</button></span>`).join("");
-    chipsEl.querySelectorAll("button[data-del]").forEach(b=>{
-      b.addEventListener("click", ()=>removeDate(b.dataset.del));
-    });
-  }
 }
 function card(label, value, small){
   return `<div class="card"><div class="label">${label}</div><div class="value${small?' sm':''}">${value}</div></div>`;
+}
+
+const PCOLOR = { rest:"var(--rest)", busy:"var(--busy)", key:"var(--key)", free:"var(--free)" };
+// 取目前章節資訊（給 進度圈/進度條/極簡 共用）
+function cycleInfo(){
+  const p = data.periods;
+  if(p.length===0) return null;
+  const ac = avgCycle();
+  const today = new Date(new Date().toDateString());
+  const bs = boundaries();
+  const info = classify(today, bs);
+  if(!info) return null;
+  const S = info.S, Snext = info.Snext;
+  const len = (S && Snext) ? daysBetween(S, Snext) : ac.len;
+  const turn = daysBetween(S, today) + 1;
+  const ovu = Snext ? addDays(Snext, -14) : addDays(S, len-14);
+  const dToNext = Snext ? daysBetween(today, Snext) : 0;
+  return { ac, today, bs, S, Snext, len, turn, chapter: info.i+1, st: info.st, ovu, dToNext };
+}
+const NOSTART = `<div class="hint" style="padding:24px 10px">尚未開始，於下方新增存檔點即可展開</div>`;
+
+const WK = ["日","一","二","三","四","五","六"];
+const WMAP = { rest:["🌧","雨"], free:["☀️","晴"], busy:["⛅","多雲"], key:["🌩","雷陣雨"] };
+function renderForecast(){
+  const el = document.getElementById("forecastBody");
+  if(data.periods.length===0){ el.innerHTML = NOSTART; return; }
+  const bs = boundaries();
+  const today = new Date(new Date().toDateString());
+  let days = "";
+  for(let d=0; d<7; d++){
+    const dt = addDays(today, d);
+    const info = classify(dt, bs);
+    const w = (info && WMAP[info.st]) || ["🌫","—"];
+    const dow = d===0 ? "今天" : "週"+WK[dt.getDay()];
+    days += `<div class="fc-day${d===0?' now':''}">
+      <div class="fc-dow">${dow}</div>
+      <div class="fc-ico">${w[0]}</div>
+      <div class="fc-lbl">${w[1]}</div>
+      <div class="fc-date">${dt.getMonth()+1}/${dt.getDate()}</div>
+    </div>`;
+  }
+  el.innerHTML = `<div class="fc">${days}</div><div class="hint" style="margin-top:12px">未來一週天氣概況</div>`;
+}
+
+// 籤名、解曰、詩句全部只依「日期」決定，與週期階段無關 → 看不出任何規律
+const FT_NAMES = ["上上籤","上吉籤","中吉籤","大安籤","小吉籤","吉慶籤","平安籤","祥和籤","如意籤","福壽籤","康寧籤","順遂籤","和合籤","光明籤"];
+const FT_JIE = ["凡事順遂，心想事成。","守正持恆，自有亨通。","平安是福，知足常樂。","靜以養身，動以養心。","與人為善，福報自來。","把握當下，莫負好時。","寬心待事，水到渠成。","蓄勢待發，時來運轉。","步步踏實，前程可期。","隨遇而安，自在從容。","作息有常，身強體健。","好事多磨，終見光明。","心寬念純，諸事皆吉。","謙和處世，貴人自來。"];
+// 上句 20 × 下句 20 = 400 種組合，依「一年第幾天」選取 → 365 天全不同、同日固定
+const FT_A = ["雲開月出照前程","春風送暖入庭除","花開枝上鳥聲喧","江上輕舟順水行","雨過天青見彩虹","山高水遠路途寬","明珠出海光自現","寒梅雪後吐新枝","風平浪靜好揚帆","旭日東昇映滿窗","竹影搖風送清涼","古木逢春再抽芽","月到天心分外明","桃李無言自成蹊","一帆風順過重關","清泉石上自長流","燕子歸來舊壘新","鶴鳴九皋聲聞天","柳暗花明又一村","金風玉露喜相逢"];
+const FT_B = ["萬事如心皆遂意","守得雲開見月明","心安步穩自亨通","福至門前喜事生","靜中蓄力待時來","平安二字值千金","莫急莫躁福自臨","守正持恆事可成","隨緣安住即是禪","寬心調養體自康","凡事三思免後憂","順時而動最相宜","把握良時莫遲疑","與人為善路自寬","養精蓄銳再啟程","好事多磨終有成","雲淡風輕度此關","安然自在過時光","留心照顧己安康","心寬體健福綿長"];
+function dayOfYear(dt){ const s = new Date(dt.getFullYear(),0,0); return Math.floor((dt - s)/86400000); }
+function dailyPoem(dt){ const n = dayOfYear(dt); return FT_A[n % FT_A.length] + "，<br>" + FT_B[Math.floor(n/FT_A.length) % FT_B.length] + "。"; }
+// 非線性雜湊:讓「日期→籤名/解曰」沒有任何週期規律(避免規律週期下排卵日固定同一籤)
+function fhash(n){ n = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b); n ^= n >>> 13; n = Math.imul(n, 0xc2b2ae35); n ^= n >>> 16; return n >>> 0; }
+function fortuneName(dt){ return FT_NAMES[fhash(dayOfYear(dt) + 1) % FT_NAMES.length]; }
+function fortuneJie(dt){ return FT_JIE[fhash(dayOfYear(dt) + 99) % FT_JIE.length]; }
+// 印章暗碼＝你的私人訊號：元＝經期 亨＝安全 利＝危險 貞＝排卵（紅印蓋一字）
+const SEAL = { rest:"元", free:"亨", busy:"利", key:"貞" };
+function fortuneNo(dt){ return fhash(dayOfYear(dt) + 31) % 99 + 1; }   // 純裝飾，與週期無關
+function renderFortune(){
+  const el = document.getElementById("fortuneBody");
+  if(data.periods.length===0){ el.innerHTML = NOSTART; return; }
+  const today = new Date(new Date().toDateString());
+  const bs = boundaries();
+  const tinfo = classify(today, bs);
+  const seal = (tinfo && SEAL[tinfo.st]) || "元";
+  let rows = "";
+  for(let d=1; d<5; d++){
+    const dt = addDays(today, d);
+    rows += `<div class="alm-row"><span class="alm-d">${dt.getMonth()+1}/${dt.getDate()} 週${WK[dt.getDay()]}</span><span class="alm-tag">${fortuneName(dt)}</span></div>`;
+  }
+  el.innerHTML = `
+    <div class="fortune">
+      <div class="ft-seal">${seal}</div>
+      <div class="ft-no">第 ${fortuneNo(today)} 籤</div>
+      <div class="ft-name">${fortuneName(today)}</div>
+      <div class="ft-poem">${dailyPoem(today)}</div>
+      <div class="ft-jie"><b>解曰</b>　${fortuneJie(today)}</div>
+    </div>
+    <div class="alm-list">${rows}</div>`;
+}
+
+// 解鎖時把未來一段日子的印章字先算好存成明碼，鎖定畫面才看得到暗碼
+// （對不懂 元亨利貞 對應的人仍無意義）
+const SEAL_CACHE = "al_seal";
+function buildSealCache(){
+  if(!cryptoKey) return;
+  const bs = boundaries();
+  const today = new Date(new Date().toDateString());
+  const map = {};
+  for(let d=0; d<46; d++){
+    const dt = addDays(today, d);
+    const info = classify(dt, bs);
+    if(info && SEAL[info.st]) map[fmt(dt)] = SEAL[info.st];
+  }
+  localStorage.setItem(SEAL_CACHE, JSON.stringify(map));
+}
+// 鎖定畫面的籤詩：印章從快取讀(解密前算不出階段，故先存好)
+function renderLockFortune(){
+  const el = document.getElementById("lockFortune");
+  if(!el) return;
+  const today = new Date(new Date().toDateString());
+  let seal = "";
+  try{ seal = (JSON.parse(localStorage.getItem(SEAL_CACHE) || "{}"))[fmt(today)] || ""; }catch(e){}
+  el.innerHTML = `
+    ${seal ? `<div class="ft-seal">${seal}</div>` : ""}
+    <div class="ft-no">第 ${fortuneNo(today)} 籤</div>
+    <div class="ft-name">${fortuneName(today)}</div>
+    <div class="ft-poem">${dailyPoem(today)}</div>
+    <div class="ft-jie"><b>解曰</b>　${fortuneJie(today)}</div>`;
+}
+
+function renderChips(){
+  const p = data.periods;
+  if(p.length===0){ chipsEl.innerHTML = `<span class="empty">尚無存檔點</span>`; return; }
+  chipsEl.innerHTML = [...p].reverse().map(ds =>
+    `<span class="chip">${ds}<button data-del="${ds}" title="刪除">✕</button></span>`).join("");
+  chipsEl.querySelectorAll("button[data-del]").forEach(b=>{
+    b.addEventListener("click", ()=>removeDate(b.dataset.del));
+  });
 }
 
 function addDate(ds){
@@ -689,14 +860,14 @@ document.getElementById("fileInput").onchange=(e)=>{
 };
 document.getElementById("clear").onclick=()=>{
   if(confirm("確定刪除全部進度與通關密語？此動作無法復原，建議先備份。")){
-    localStorage.removeItem(LS.salt); localStorage.removeItem(LS.check); localStorage.removeItem(LS.data);
+    localStorage.removeItem(LS.salt); localStorage.removeItem(LS.check); localStorage.removeItem(LS.data); localStorage.removeItem(SEAL_CACHE);
     cryptoKey = null; relock();
   }
 };
 
 (async ()=>{
   if(await tryRestore()){ enterApp(); }
-  else { pw1.focus(); }
+  else { renderLockFortune(); pw1.focus(); }
 })();
 </script>
 </body>
