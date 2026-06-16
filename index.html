@@ -896,20 +896,22 @@ document.getElementById("clear").onclick=()=>{
 // 開啟時先讀同目錄 data.json（加密包）；比本機新或本機無資料時才採用，避免蓋掉未上傳的編輯
 async function loadRemoteData(){
   const c = ghCfg();
+  const viaApi = !!(c.owner && c.repo && c.token);
   let b = null;
   try{
-    if(c.owner && c.repo && c.token){ b = await ghReadBundle(c); }                 // 有設定 → API 讀最新(不吃 CDN 快取)
+    if(viaApi){ b = await ghReadBundle(c); }                                        // 有設定 GitHub → API 讀最新(不吃 CDN 快取)
     else { const r = await fetch(`./data.json?_=${Date.now()}`, { cache:"no-store" }); if(r.ok) b = await r.json(); }
   }catch(e){ b = null; }
   if(!b || !b.salt || !b.check || !b.data) return;
   const localU = localStorage.getItem("al_updated") || "";
   const remoteU = b.updated || "";
-  if(localStorage.getItem(LS.data) && remoteU <= localU) return;   // 本機較新 → 保留
+  // 有設定 GitHub → repo 為準，直接採用；無 token 的靜態退回才用時間戳避免蓋掉本機
+  if(!viaApi && localStorage.getItem(LS.data) && remoteU <= localU) return;
   const oldSalt = localStorage.getItem(LS.salt);
   localStorage.setItem(LS.salt, b.salt);
   localStorage.setItem(LS.check, b.check);
   localStorage.setItem(LS.data, b.data);
-  localStorage.setItem("al_updated", remoteU || new Date().toISOString());
+  localStorage.setItem("al_updated", remoteU);   // 用資料本身的時間，不造假
   if(b.salt !== oldSalt) clearSessionKey();   // 對方改過密語 → 需重新解鎖
 }
 
