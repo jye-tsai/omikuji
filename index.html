@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-Hant" data-theme="ocean">
+<html lang="zh-Hant" data-theme="wafu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>今日運勢</title>
 <!-- PWA：可加到主畫面、全螢幕、離線 -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0284c7">
+<meta name="theme-color" content="#f3ede1">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -32,12 +32,6 @@
     --title:#7c3a1d; --title-accent:#f97316; --title-glow:0 0 16px rgba(249,115,22,.5),0 0 32px rgba(251,113,133,.22);
     --accent:#f97316; --shadow:0 2px 14px rgba(180,90,50,.12);
   }
-  [data-theme="matcha"] {
-    --bg:#eef4ec; --card:#fbfdf9; --border:#d3e2cc;
-    --text:#25352a; --muted:#6f8772;
-    --title:#1f3a2a; --title-accent:#16a34a; --title-glow:0 0 16px rgba(22,163,74,.48),0 0 32px rgba(22,163,74,.2);
-    --accent:#4d7c45; --shadow:0 2px 14px rgba(40,70,45,.09);
-  }
   [data-theme="midnight"] {
     --bg:#0d1424; --card:#15203a; --border:#2a3a57;
     --text:#e8edf7; --muted:#93a3c0;
@@ -50,17 +44,12 @@
     --title:#1e3a8a; --title-accent:#eab308; --title-glow:0 0 16px rgba(234,179,8,.6),0 0 30px rgba(43,63,158,.3);
     --accent:#2b3f9e; --shadow:0 4px 16px rgba(70,60,140,.16);
   }
-  [data-theme="cute"] {
-    --bg:#fef6fb; --card:#fffafd; --border:#f6dbe8;
-    --text:#5b4a55; --muted:#b291a3;
-    --title:#6b4a5e; --title-accent:#ff8fb8; --title-glow:0 0 16px rgba(255,143,184,.6),0 0 30px rgba(255,143,184,.28);
-    --accent:#ff8fb4; --shadow:0 4px 16px rgba(244,143,177,.18);
-  }
-  [data-theme="agent"] {
-    --bg:#05060f; --card:rgba(16,19,33,.78); --border:rgba(139,92,246,.34);
-    --text:#e6ecff; --muted:#98a7d8;
-    --title:#f8f5ff; --title-accent:#4fdcff; --title-glow:0 0 18px rgba(139,92,246,.85),0 0 40px rgba(53,213,255,.32);
-    --accent:#9d6dff; --shadow:0 0 0 1px rgba(139,92,246,.12),0 20px 52px rgba(0,0,0,.5);
+
+  [data-theme="wafu"] {                        /* ⛩ 和風：和紙+朱印+明朝體 */
+    --bg:#f3ede1; --card:#faf6ec; --border:#ddd0b8;
+    --text:#3a3226; --muted:#8c7f6a;
+    --title:#4a2f23; --title-accent:#b03a2e; --title-glow:0 0 14px rgba(176,58,46,.30),0 0 26px rgba(176,58,46,.12);
+    --accent:#a8452e; --shadow:0 2px 12px rgba(90,70,40,.12);
   }
 
   /* 狀態色 */
@@ -70,35 +59,27 @@
     --key:#8b5cf6; --key-bg:#ece4fb;
     --free:#2bb39a; --free-bg:#d9f3ec;
   }
-  [data-theme="midnight"], [data-theme="agent"]{
+  [data-theme="midnight"]{
     --rest:#ff9ec4; --rest-bg:rgba(255,107,129,.15);
     --busy:#facc15; --busy-bg:rgba(224,179,77,.14);
     --key:#c084fc; --key-bg:rgba(192,132,252,.14);
     --free:#34d399; --free-bg:rgba(52,211,153,.14);
+  }
+  [data-theme="wafu"]{
+    --rest:#b3556e; --rest-bg:#f4e3e7;
+    --busy:#c9752e; --busy-bg:#f6e8d4;
+    --key:#7e6bb0; --key-bg:#ebe6f4;
+    --free:#5a7247; --free-bg:#e9efe4;
   }
 
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;
     padding:18px;min-height:100vh;-webkit-text-size-adjust:100%;}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:0;}
-  [data-theme="agent"] body::before{opacity:1;background:
-    radial-gradient(circle at 12% 6%,rgba(139,92,246,.30),transparent 30%),
-    radial-gradient(circle at 86% 12%,rgba(34,211,238,.18),transparent 32%),
-    radial-gradient(circle at 50% 118%,rgba(155,108,255,.22),transparent 55%),
-    linear-gradient(rgba(120,140,255,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(120,140,255,.05) 1px,transparent 1px),
-    radial-gradient(circle at 50% 38%,#0b0d1d 0%,#06070f 68%,#020308 100%);
-    background-size:auto,auto,auto,40px 40px,40px 40px,auto;}
-  [data-theme="cute"] body::before{opacity:1;background:
-    radial-gradient(circle at 15% 8%,rgba(255,158,196,.20),transparent 42%),
-    radial-gradient(circle at 85% 14%,rgba(143,224,200,.18),transparent 44%),
-    radial-gradient(circle at 50% 112%,rgba(185,167,255,.16),transparent 55%);}
-
   .container{max-width:600px;margin:0 auto;}
   header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
   h1{font-size:25px;color:var(--title);display:flex;align-items:center;gap:8px;line-height:1.25;text-shadow:var(--title-glow);font-weight:850;letter-spacing:.02em;}
   .brand-icon{color:var(--title-accent);filter:drop-shadow(0 0 10px var(--title-accent));font-size:27px;}
-  [data-theme="agent"] h1{font-family:Consolas,"Cascadia Mono",monospace;letter-spacing:.08em;}
   .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;
     border-radius:9px;cursor:pointer;font-size:15px;font-weight:600;box-shadow:var(--shadow);}
@@ -106,15 +87,9 @@
   select.btn{padding:8px 9px;}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
   .btn.danger{color:var(--rest);}
-  [data-theme="agent"] .btn{background:rgba(16,18,27,.88);border-color:rgba(139,92,246,.25);backdrop-filter:blur(10px);}
-  [data-theme="agent"] .btn:hover{border-color:rgba(34,211,238,.62);box-shadow:0 0 18px rgba(34,211,238,.14);}
-
   .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;
     margin-bottom:16px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s,border-color .18s;}
-  [data-theme="agent"] .panel{border-radius:16px;background:linear-gradient(180deg,rgba(139,92,246,.07),transparent 46%),var(--card);backdrop-filter:blur(16px);}
-  [data-theme="cute"] .panel{border-radius:22px;}
   .sec-title{font-size:16px;font-weight:800;margin:0 0 12px;color:var(--muted);letter-spacing:.04em;}
-  [data-theme="agent"] .sec-title{color:#c8b8ff;text-transform:uppercase;letter-spacing:.08em;text-shadow:0 0 16px rgba(155,108,255,.38);}
 
   /* 今日狀態橫幅 */
   .banner{border-radius:16px;padding:22px 18px;margin-bottom:16px;text-align:center;
@@ -132,7 +107,6 @@
     box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;
     transition:transform .18s,box-shadow .18s,border-color .18s;}
   .card:hover{transform:translateY(-3px);border-color:var(--accent);}
-  [data-theme="cute"] .card{border-radius:20px;}
   .card .label{color:var(--muted);font-size:14px;margin-bottom:8px;font-weight:750;}
   .card .value{font-size:23px;font-weight:850;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--title);}
   .card .value.sm{font-size:19px;}
@@ -146,10 +120,16 @@
   .fc-ico{font-size:26px;margin:8px 0 6px;}
   .fc-lbl{font-size:12px;color:var(--text);font-weight:700;}
   .fc-date{font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums;}
+  /* 和風排版：明朝體 + 籤詩直書 */
+  [data-theme="wafu"] body{font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif TC","Microsoft JhengHei",serif;}
+  [data-theme="wafu"] h1{letter-spacing:.22em;}
+  [data-theme="wafu"] .ft-name{background:#b03a2e;border-radius:4px;letter-spacing:.3em;}
+  [data-theme="wafu"] .ft-no{letter-spacing:.35em;}
+  [data-theme="wafu"] .ft-poem{writing-mode:vertical-rl;height:232px;display:block;width:fit-content;margin:14px auto;line-height:2.05;letter-spacing:.14em;}
   /* 每日籤詩 */
   .fortune{position:relative;text-align:center;padding:20px 16px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--accent) 6%,var(--card));margin-bottom:14px;}
   .ft-no{font-size:13px;color:var(--muted);letter-spacing:.2em;margin-bottom:8px;}
-  /* 紅色印章效果(元亨利貞=私人暗碼) */
+  /* 紅色印章效果 */
   .ft-seal{position:absolute;top:14px;right:14px;width:42px;height:42px;transform:rotate(-7deg);
     display:flex;align-items:center;justify-content:center;border:2.5px solid #c0392b;border-radius:8px;
     color:#c0392b;font-size:23px;font-weight:800;opacity:.82;
@@ -184,6 +164,19 @@
   .hint{font-size:14px;color:var(--muted);text-align:center;margin-top:10px;}
   .foot{font-size:13px;color:var(--muted);opacity:.8;text-align:center;line-height:1.6;margin-top:6px;}
 
+  /* 命運羅盤 */
+  .wheel-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:13px;color:var(--muted);font-weight:700;}
+  .wheel-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+  /* 編年史 */
+  .hist-row{display:grid;grid-template-columns:52px 1fr 76px auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .hist-row:last-child{border-bottom:none;}
+  .hist-row.odd{opacity:.55;}
+  .hist-ch{color:var(--muted);font-weight:700;white-space:nowrap;}
+  .hist-bar{background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:6px;height:12px;overflow:hidden;}
+  .hist-bar i{display:block;height:100%;background:var(--accent);border-radius:6px;}
+  .hist-len{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .hist-date{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  @media (max-width:480px){ .hist-date{display:none;} }
   /* 鎖定畫面 */
   #lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99;}
   #lock .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 22px;max-width:340px;width:100%;box-shadow:var(--shadow);text-align:center;}
@@ -253,14 +246,14 @@
 </head>
 <body>
 
-<!-- 首頁（公開）：只顯示籤詩；輕觸印章才會跳出解鎖 -->
+<!-- 首頁：每日籤詩 -->
 <div id="lock">
   <div class="box">
     <div class="fortune" id="lockFortune"></div>
   </div>
 </div>
 
-<!-- 解鎖視窗（點印章才出現）-->
+<!-- 解鎖視窗 -->
 <div id="unlockModal" class="hidden">
   <div class="mbox">
     <h3 id="unlockTitle">🔒 解鎖</h3>
@@ -345,22 +338,13 @@
   <header>
     <h1><span class="brand-icon" id="brandIcon">⚔</span> <span id="brandText">冒險日誌</span></h1>
     <div class="toolbar">
-      <select class="btn" id="theme-sel" title="切換風格">
-        <option value="ocean">🌊 海洋藍</option>
-        <option value="coral">🌅 珊瑚暖陽</option>
-        <option value="matcha">🌿 抹茶清新</option>
-        <option value="midnight">🌌 午夜金</option>
-        <option value="cute">🍡 馬卡龍</option>
-        <option value="sailor">🌙 美少女</option>
-        <option value="agent">🧬 Agent Neon</option>
-      </select>
       <select class="btn" id="view-sel" title="切換檢視">
         <option value="status">🃏 狀態卡</option>
+        <option value="wheel">🧭 命運羅盤</option>
         <option value="forecast">🌤️ 七日預報</option>
         <option value="fortune">🎴 每日籤詩</option>
+        <option value="history">🏰 編年史</option>
       </select>
-      <button class="btn" id="changePw">🔑 變更密語</button>
-      <button class="btn" id="ghBtn">🔗 GitHub</button>
       <button class="btn" id="relock">🔒 鎖定</button>
     </div>
   </header>
@@ -384,6 +368,16 @@
     <div id="fortuneBody"></div>
   </div>
 
+  <!-- 檢視：命運羅盤 -->
+  <div id="viewWheel" class="panel hidden">
+    <div id="wheelBody"></div>
+  </div>
+
+  <!-- 檢視：編年史 -->
+  <div id="viewHistory" class="panel hidden">
+    <div id="historyBody"></div>
+  </div>
+
   <!-- 記錄存檔點 -->
   <div class="panel" style="margin-top:16px">
     <div class="sec-title">記錄存檔點</div>
@@ -400,7 +394,15 @@
     <div class="sec-title">設定</div>
     <label>回復期長度<input type="number" id="periodLen" min="1" max="14"></label>
     <label>預設章節長度（資料不足時使用）<input type="number" id="defCycle" min="20" max="40"></label>
-    <div class="hint">存檔滿 2 次以上後，章節長度會自動用實際平均值計算</div>
+    <label>印章・回復期<input type="text" id="sealRest" maxlength="1" autocomplete="off"></label>
+    <label>印章・城鎮<input type="text" id="sealFree" maxlength="1" autocomplete="off"></label>
+    <label>印章・戰鬥期<input type="text" id="sealBusy" maxlength="1" autocomplete="off"></label>
+    <label>印章・頭目戰<input type="text" id="sealKey" maxlength="1" autocomplete="off"></label>
+    <div class="hint">印章字蓋在籤詩右上角；存檔滿 2 次後，章節長度自動以近期加權平均計算</div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn" id="changePw">🔑 變更密語</button>
+      <button class="btn" id="ghBtn">🔗 GitHub</button>
+    </div>
   </div>
 
   <!-- 存檔資料 -->
@@ -423,15 +425,14 @@
 <script>
 "use strict";
 
-/* ---------- 主題 ---------- */
-const THEME_KEY = "al_theme";
-const themeSel = document.getElementById("theme-sel");
-function applyTheme(t){ document.documentElement.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
-(function initTheme(){
-  const saved = localStorage.getItem(THEME_KEY) || "ocean";
-  document.documentElement.dataset.theme = saved; themeSel.value = saved;
-})();
-themeSel.addEventListener("change", ()=>applyTheme(themeSel.value));
+/* ---------- 風格：跟著檢視走（籤詩=和風、狀態卡=午夜金、羅盤=美少女、預報=海洋藍、編年史=珊瑚暖陽）---------- */
+const VIEW_THEME = { status:"midnight", wheel:"sailor", forecast:"ocean", fortune:"wafu", history:"coral" };
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m && bg) m.setAttribute("content", bg);
+}
 
 /* ---------- 加密核心（AES-GCM + PBKDF2）---------- */
 const LS = { salt:"al_salt", check:"al_check", data:"al_data" };
@@ -456,12 +457,18 @@ async function decStr(blob){
   const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv}, cryptoKey, ct);
   return new TextDecoder().decode(pt);
 }
+const SEAL_POOL = [..."安康寧泰和順昌隆吉祥豐盈欣悅"];
+function randomSealChars(){
+  const pool = [...SEAL_POOL];
+  const pick = () => pool.splice(Math.floor(Math.random()*pool.length), 1)[0];
+  return { rest: pick(), free: pick(), busy: pick(), key: pick() };
+}
 async function setupPassword(pw){
   const salt = crypto.getRandomValues(new Uint8Array(16));
   localStorage.setItem(LS.salt, b64(salt));
   cryptoKey = await deriveKey(pw, salt);
   localStorage.setItem(LS.check, await encStr("VALID"));
-  data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } };
+  data = { periods: [], settings: { periodLength: 5, defaultCycle: 28, sealChars: randomSealChars() } };
   localStorage.setItem(LS.data, await encStr(JSON.stringify(data)));
   localStorage.setItem("al_updated", new Date().toISOString());
 }
@@ -471,7 +478,7 @@ async function unlock(pw){
   try{ if(await decStr(localStorage.getItem(LS.check)) !== "VALID") throw 0; }
   catch(e){ cryptoKey = null; return false; }
   try{ data = normalize(JSON.parse(await decStr(localStorage.getItem(LS.data)))); }
-  catch(e){ data = { periods: [], settings: { periodLength: 5, defaultCycle: 28 } }; }
+  catch(e){ data = normalize({ periods: [], settings: {} }); }
   return true;
 }
 async function save(){ if(!cryptoKey) return; localStorage.setItem(LS.data, await encStr(JSON.stringify(data))); localStorage.setItem("al_updated", new Date().toISOString()); buildSealCache(); autoSync(); }
@@ -497,6 +504,7 @@ function normalize(d){
   d.settings = d.settings || {};
   if(!d.settings.periodLength) d.settings.periodLength = 5;
   if(!d.settings.defaultCycle) d.settings.defaultCycle = 28;
+  if(!d.settings.sealChars || !d.settings.sealChars.rest) d.settings.sealChars = { rest:"元", free:"亨", busy:"利", key:"貞" };
   d.periods = [...new Set(d.periods)].sort();
   return d;
 }
@@ -576,6 +584,7 @@ function enterApp(){
   closeUnlock();
   lock.classList.add("hidden"); app.classList.remove("hidden");
   pl.value = data.settings.periodLength; dc.value = data.settings.defaultCycle;
+  fillSealInputs();
   dateInput.value = fmt(new Date());
   render();
   buildSealCache();
@@ -753,13 +762,28 @@ function parse(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1
 function addDays(dt,n){ const r=new Date(dt); r.setDate(r.getDate()+n); return r; }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 function sameYMD(a,b){ return fmt(a)===fmt(b); }
+function cycleGaps(){
+  const p = data.periods, out = [];
+  for(let i=1;i<p.length;i++){
+    const len = daysBetween(parse(p[i-1]), parse(p[i]));
+    out.push({ from:p[i-1], to:p[i], len, ok: len>=15 && len<=60 });
+  }
+  return out;
+}
+// 近期加權平均（最近 6 段、越近權重越大）+ 全段標準差
 function avgCycle(){
-  const p = data.periods;
-  if(p.length < 2) return { len: data.settings.defaultCycle, estimated: true };
-  let sum=0, n=0;
-  for(let i=1;i<p.length;i++){ const diff = daysBetween(parse(p[i-1]), parse(p[i])); if(diff>=15&&diff<=60){ sum+=diff; n++; } }
-  if(n===0) return { len: data.settings.defaultCycle, estimated: true };
-  return { len: Math.round(sum/n), estimated: false };
+  const ok = cycleGaps().filter(g=>g.ok).map(g=>g.len);
+  if(ok.length===0) return { len: data.settings.defaultCycle, estimated: true, sd: 0, n: 0 };
+  const recent = ok.slice(-6);
+  let ws=0, vs=0;
+  recent.forEach((v,i)=>{ const w=i+1; ws+=w; vs+=v*w; });
+  const mean = ok.reduce((a,b)=>a+b,0)/ok.length;
+  const sd = Math.sqrt(ok.reduce((a,b)=>a+(b-mean)*(b-mean),0)/ok.length);
+  return { len: Math.round(vs/ws), estimated: false, sd: Math.round(sd*10)/10, n: ok.length };
+}
+function regularity(ac){
+  if(!ac || ac.n<2) return "";
+  return ac.sd<=1.5 ? "穩定" : ac.sd<=3 ? "普通" : "起伏大";
 }
 function boundaries(){
   const p = data.periods.map(parse);
@@ -799,15 +823,18 @@ const viewSel = document.getElementById("view-sel");
 (function initView(){ viewSel.value = localStorage.getItem(VIEW_KEY) || "status"; })();
 viewSel.addEventListener("change", ()=>{ localStorage.setItem(VIEW_KEY, viewSel.value); render(); });
 
-const VIEW_MAP = { status:"viewStatus", forecast:"viewForecast", fortune:"viewFortune" };
-const RENDERERS = { forecast:renderForecast, fortune:renderFortune, status:renderStatus };
+const VIEW_MAP = { status:"viewStatus", wheel:"viewWheel", forecast:"viewForecast", fortune:"viewFortune", history:"viewHistory" };
+const RENDERERS = { forecast:renderForecast, fortune:renderFortune, status:renderStatus, wheel:renderWheel, history:renderHistory };
 const VIEW_HEAD = {
   status:    { icon:"⚔", title:"冒險日誌" },
+  wheel:     { icon:"🧭", title:"命運羅盤" },
   forecast:  { icon:"🌤️", title:"一週天氣" },
-  fortune:   { icon:"🎴", title:"今日籤詩" }
+  fortune:   { icon:"🎴", title:"今日籤詩" },
+  history:   { icon:"🏰", title:"冒險編年史" }
 };
 function render(){
   const v = VIEW_MAP[localStorage.getItem(VIEW_KEY)] ? localStorage.getItem(VIEW_KEY) : "status";
+  applyTheme(VIEW_THEME[v] || "wafu");
   Object.entries(VIEW_MAP).forEach(([k,id])=> document.getElementById(id).classList.toggle("hidden", k!==v));
   const head = VIEW_HEAD[v] || VIEW_HEAD.status;
   document.getElementById("brandIcon").textContent = head.icon;
@@ -828,7 +855,7 @@ function renderStatus(){
   } else {
     const info = classify(today, bs);
     const st = info ? info.st : null;
-    banner.classList.add(st || "");
+    if(st) banner.classList.add(st);
     phaseEl.textContent = st ? PHASE[st] : "整裝中";
     const chapter = info ? info.i + 1 : 0;
     const turn = info ? daysBetween(info.S, today) + 1 : 0;
@@ -836,13 +863,14 @@ function renderStatus(){
   }
   let cards = "";
   cards += card("冒險章節數", p.length + " 章");
-  cards += card("平均章節長度", ac.len + " 回合" + (ac.estimated? "（預設）":""), true);
+  cards += card("平均章節長度", ac.len + " 回合" + (ac.estimated? "（預設）": (regularity(ac)? "（"+regularity(ac)+"）":"")), true);
   if(p.length>0){
     const last = parse(p[p.length-1]);
     const nextStart = addDays(last, ac.len);
     const ovu = addDays(nextStart, -14);
     const dleft = daysBetween(today, nextStart);
-    cards += card("距下個存檔點", (dleft>=0? "約 "+dleft : "已超過") + " 回合");
+    const pm = (!ac.estimated && ac.sd>0) ? "±"+Math.ceil(ac.sd) : "";
+    cards += card("距下個存檔點", (dleft>=0? "約 "+dleft+pm : "已超過") + " 回合");
     cards += card("下個存檔點", fmt(nextStart), true);
     cards += card("下場頭目戰", fmt(ovu), true);
     cards += card("最近一次存檔", p[p.length-1], true);
@@ -896,7 +924,7 @@ function renderForecast(){
   el.innerHTML = `<div class="fc">${days}</div><div class="hint" style="margin-top:12px">未來一週天氣概況</div>`;
 }
 
-// 籤名、解曰、詩句全部只依「日期」決定，與週期階段無關 → 看不出任何規律
+// 籤名、解曰、詩句只依日期決定，同日固定
 const FT_NAMES = ["上上籤","上吉籤","中吉籤","大安籤","小吉籤","吉慶籤","平安籤","祥和籤","如意籤","福壽籤","康寧籤","順遂籤","和合籤","光明籤"];
 const FT_JIE = ["凡事順遂，心想事成。","守正持恆，自有亨通。","平安是福，知足常樂。","靜以養身，動以養心。","與人為善，福報自來。","把握當下，莫負好時。","寬心待事，水到渠成。","蓄勢待發，時來運轉。","步步踏實，前程可期。","隨遇而安，自在從容。","作息有常，身強體健。","好事多磨，終見光明。","心寬念純，諸事皆吉。","謙和處世，貴人自來。"];
 // 上句 20 × 下句 20 = 400 種組合，依「一年第幾天」選取 → 365 天全不同、同日固定
@@ -904,20 +932,20 @@ const FT_A = ["雲開月出照前程","春風送暖入庭除","花開枝上鳥�
 const FT_B = ["萬事如心皆遂意","守得雲開見月明","心安步穩自亨通","福至門前喜事生","靜中蓄力待時來","平安二字值千金","莫急莫躁福自臨","守正持恆事可成","隨緣安住即是禪","寬心調養體自康","凡事三思免後憂","順時而動最相宜","把握良時莫遲疑","與人為善路自寬","養精蓄銳再啟程","好事多磨終有成","雲淡風輕度此關","安然自在過時光","留心照顧己安康","心寬體健福綿長"];
 function dayOfYear(dt){ const s = new Date(dt.getFullYear(),0,0); return Math.floor((dt - s)/86400000); }
 function dailyPoem(dt){ const n = dayOfYear(dt); return FT_A[n % FT_A.length] + "，<br>" + FT_B[Math.floor(n/FT_A.length) % FT_B.length] + "。"; }
-// 非線性雜湊:讓「日期→籤名/解曰」沒有任何週期規律(避免規律週期下排卵日固定同一籤)
+// 非線性雜湊：打散日期對應
 function fhash(n){ n = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b); n ^= n >>> 13; n = Math.imul(n, 0xc2b2ae35); n ^= n >>> 16; return n >>> 0; }
 function fortuneName(dt){ return FT_NAMES[fhash(dayOfYear(dt) + 1) % FT_NAMES.length]; }
 function fortuneJie(dt){ return FT_JIE[fhash(dayOfYear(dt) + 99) % FT_JIE.length]; }
-// 印章暗碼＝你的私人訊號：元＝經期 亨＝安全 利＝危險 貞＝排卵（紅印蓋一字）
-const SEAL = { rest:"元", free:"亨", busy:"利", key:"貞" };
-function fortuneNo(dt){ return fhash(dayOfYear(dt) + 31) % 99 + 1; }   // 純裝飾，與週期無關
+// 印章字：存在加密資料裡，可於「設定」自訂
+function sealChar(st){ return ((data.settings && data.settings.sealChars) || {})[st] || ""; }
+function fortuneNo(dt){ return fhash(dayOfYear(dt) + 31) % 99 + 1; }   // 純裝飾
 function renderFortune(){
   const el = document.getElementById("fortuneBody");
   if(data.periods.length===0){ el.innerHTML = NOSTART; return; }
   const today = new Date(new Date().toDateString());
   const bs = boundaries();
   const tinfo = classify(today, bs);
-  const seal = (tinfo && SEAL[tinfo.st]) || "元";
+  const seal = (tinfo && sealChar(tinfo.st)) || "運";
   let rows = "";
   for(let d=1; d<5; d++){
     const dt = addDays(today, d);
@@ -934,8 +962,7 @@ function renderFortune(){
     <div class="alm-list">${rows}</div>`;
 }
 
-// 解鎖時把未來一段日子的印章字先算好存成明碼，鎖定畫面才看得到暗碼
-// （對不懂 元亨利貞 對應的人仍無意義）
+// 解鎖時預先計算印章字快取，供鎖定畫面顯示
 const SEAL_CACHE = "al_seal";
 function buildSealCache(){
   if(!cryptoKey) return;
@@ -945,14 +972,16 @@ function buildSealCache(){
   for(let d=0; d<46; d++){
     const dt = addDays(today, d);
     const info = classify(dt, bs);
-    if(info && SEAL[info.st]) map[fmt(dt)] = SEAL[info.st];
+    const ch = info && sealChar(info.st);
+    if(ch) map[fmt(dt)] = ch;
   }
   localStorage.setItem(SEAL_CACHE, JSON.stringify(map));
 }
-// 首頁籤詩：印章一律顯示（有快取就顯示當天暗碼，否則顯示中性字），點印章＝解鎖
+// 首頁籤詩
 function renderLockFortune(){
   const el = document.getElementById("lockFortune");
   if(!el) return;
+  applyTheme("wafu");
   const today = new Date(new Date().toDateString());
   let seal = "";
   try{ seal = (JSON.parse(localStorage.getItem(SEAL_CACHE) || "{}"))[fmt(today)] || ""; }catch(e){}
@@ -964,6 +993,77 @@ function renderLockFortune(){
     <div class="ft-jie"><b>解曰</b>　${fortuneJie(today)}</div>`;
   const s = document.getElementById("lockSeal");
   if(s) s.addEventListener("click", openUnlock);
+}
+
+const PHASE_SHORT = { rest:"回復期", busy:"戰鬥期", key:"頭目戰", free:"城鎮" };
+function renderWheel(){
+  const el = document.getElementById("wheelBody");
+  const ci = cycleInfo();
+  if(!ci){ el.innerHTML = NOSTART; return; }
+  const len = ci.len, plen = data.settings.periodLength;
+  const ovuIdx = daysBetween(ci.S, ci.ovu);
+  const stOf = d => d < plen ? "rest" : d === ovuIdx ? "key" : (d >= ovuIdx-5 && d <= ovuIdx+4) ? "busy" : "free";
+  const runs = [];
+  for(let d=0; d<len; d++){
+    const st = stOf(d);
+    if(runs.length && runs[runs.length-1].st === st) runs[runs.length-1].n++;
+    else runs.push({ st, start:d, n:1 });
+  }
+  const R = 84, C = 2*Math.PI*R, GAP = 3;
+  const arcs = runs.map(r => {
+    const dash = Math.max(1.5, C*r.n/len - GAP);
+    return `<circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--${r.st})" stroke-width="26" stroke-dasharray="${dash.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-C*r.start/len).toFixed(2)}" transform="rotate(-90 110 110)" opacity=".92"/>`;
+  }).join("");
+  const keyArc = `<circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--key)" stroke-width="32" stroke-dasharray="${Math.max(2.5, C/len - 2).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-C*ovuIdx/len).toFixed(2)}" transform="rotate(-90 110 110)"/>`;
+  const ang = 2*Math.PI*((ci.turn - 0.5)/len) - Math.PI/2;
+  const px = 110 + R*Math.cos(ang), py = 110 + R*Math.sin(ang);
+  const stc = ci.st || "free";
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      <svg viewBox="0 0 220 220" style="width:min(280px,74vw)" role="img" aria-label="本章節進度輪盤">
+        ${arcs}${keyArc}
+        <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="8.5" fill="var(--card)" stroke="var(--${stc})" stroke-width="3.5"/>
+        <text x="110" y="94" text-anchor="middle" style="font-size:14px;font-weight:800;fill:var(--muted)">第 ${ci.chapter} 章</text>
+        <text x="110" y="119" text-anchor="middle" style="font-size:21px;font-weight:850;fill:var(--${stc})">${PHASE_SHORT[stc] || "—"}</text>
+        <text x="110" y="141" text-anchor="middle" style="font-size:12.5px;font-weight:700;fill:var(--muted)">第 ${ci.turn} / ${len} 回合</text>
+      </svg>
+      <div class="wheel-legend">
+        <span><i style="background:var(--rest)"></i>回復期</span>
+        <span><i style="background:var(--busy)"></i>戰鬥期</span>
+        <span><i style="background:var(--key)"></i>頭目戰</span>
+        <span><i style="background:var(--free)"></i>城鎮</span>
+      </div>
+      <div class="hint" style="margin-top:0">頭目戰 ${fmt(ci.ovu)} · 下個存檔點 ${ci.Snext ? fmt(ci.Snext) : "—"}（約 ${ci.dToNext} 回合後）</div>
+    </div>`;
+}
+
+function renderHistory(){
+  const el = document.getElementById("historyBody");
+  const gaps = cycleGaps();
+  if(gaps.length === 0){ el.innerHTML = `<div class="hint" style="padding:24px 10px">存檔滿 2 筆後，這裡會出現章節編年史</div>`; return; }
+  const ac = avgCycle();
+  const ok = gaps.filter(g=>g.ok).map(g=>g.len);
+  const mn = ok.length ? Math.min(...ok) : 0, mx = ok.length ? Math.max(...ok) : 0;
+  const maxLen = Math.max(...gaps.map(g=>g.len), ac.len);
+  const rows = [...gaps].reverse().slice(0, 24).map((g, idx) => {
+    const no = gaps.length - idx;
+    const w = Math.max(8, Math.round(g.len/maxLen*100));
+    return `<div class="hist-row${g.ok ? "" : " odd"}" title="${g.from} → ${g.to}">
+      <span class="hist-ch">第 ${no} 章</span>
+      <span class="hist-bar"><i style="width:${w}%"></i></span>
+      <span class="hist-len">${g.len} 回合${g.ok ? "" : "※"}</span>
+      <span class="hist-date">${g.from.slice(2)} → ${g.to.slice(2)}</span>
+    </div>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="cards" style="margin-bottom:14px">
+      ${card("平均長度（近期加權）", ac.len + " 回合", true)}
+      ${card("規律度", regularity(ac) || "—")}
+      ${card("最短", (mn || "—") + " 回合", true)}
+      ${card("最長", (mx || "—") + " 回合", true)}
+    </div>
+    <div>${rows}</div>
+    ${gaps.some(g=>!g.ok) ? '<div class="hint">※ 長度異常的章節（&lt;15 或 &gt;60 回合）不列入平均</div>' : ""}`;
 }
 
 function renderChips(){
@@ -994,6 +1094,16 @@ const dc = document.getElementById("defCycle");
 pl.addEventListener("change",()=>{ data.settings.periodLength = clamp(+pl.value,1,14); pl.value=data.settings.periodLength; render(); save(); });
 dc.addEventListener("change",()=>{ data.settings.defaultCycle = clamp(+dc.value,20,40); dc.value=data.settings.defaultCycle; render(); save(); });
 function clamp(v,a,b){ if(isNaN(v))return a; return Math.min(b,Math.max(a,v)); }
+const sealInputs = { rest: document.getElementById("sealRest"), free: document.getElementById("sealFree"), busy: document.getElementById("sealBusy"), key: document.getElementById("sealKey") };
+function fillSealInputs(){ const sc = data.settings.sealChars || {}; Object.entries(sealInputs).forEach(([k,el])=>{ el.value = sc[k] || ""; }); }
+Object.entries(sealInputs).forEach(([k,el])=>{
+  el.addEventListener("change", ()=>{
+    const v = el.value.trim().slice(0,1);
+    if(v) data.settings.sealChars[k] = v;
+    el.value = data.settings.sealChars[k];
+    render(); save();
+  });
+});
 
 /* ---------- 備份 / 讀取（加密包）---------- */
 document.getElementById("export").onclick=()=>{
