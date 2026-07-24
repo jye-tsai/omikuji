@@ -56,7 +56,7 @@
 
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;
-    padding:18px;min-height:100vh;-webkit-text-size-adjust:100%;}
+    padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 18px);min-height:100vh;-webkit-text-size-adjust:100%;}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:0;}
   .container{max-width:600px;margin:0 auto;}
   header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
